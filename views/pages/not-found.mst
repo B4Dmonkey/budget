@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>404 Not Found</title>
+  </head>
+  <body>
+    <h1>&gt;_&gt;</h1>
+    <h1>&lt;_&lt;</h1>
+    <h1>&gt;_&gt;</h1>
+    <h1>~_~ I don't think you belong here...</h1>
+    <script type="text/javascript">
+      window.location.href = "/";
+    </script>
+  </body>
+</html>

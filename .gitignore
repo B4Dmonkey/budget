@@ -1,4 +1,9 @@
+# * Sorted alphabetically with hidden files first
+# * Files
 .env
+database/data.db
+# * Directories
 .vscode/
+database/orm/
 tmp/
 uploads/

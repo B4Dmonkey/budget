@@ -18,7 +18,7 @@ endif
 dev:
 	@~/go/bin/air
 
-test: db_migrate_test_database seed run-tests db_clean_up_test_database
+test: db-build seed run-tests 
 
 run-tests:
 	@go test -v ./...
@@ -31,7 +31,7 @@ binary:
 	@echo "Build complete."
 
 # Data base migrations
-db-build db: db-migration-up sql-quries db-seed-database
+db-build db: db-migration-up sql-quries 
 
 new-migration:
 	@dbmate --migrations-dir=$(DB_MIGRATION_DIR) new $(name)

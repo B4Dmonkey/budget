@@ -28,8 +28,11 @@ func CreateApp(ctx context.Context, env EnvConfigInterface) *App {
 	}
 }
 
-
 func (a *App) InitializeServer() {
+	if err := CreateDatabase(); err != nil {
+		log.Fatal(err.Error())
+		return
+	}
 	// fSys, err := fs.Sub(publicDir, "public")
 
 	// if err != nil {

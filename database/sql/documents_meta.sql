@@ -1,2 +1,5 @@
 -- name: CreateDocumentMeta :one
-INSERT INTO documents_meta (id, name, persisted_loc) VALUES (uuid(), $1, $2) RETURNING *;
+INSERT INTO
+  documents_meta (id, NAME, persisted_loc)
+VALUES
+  (UUID (), ?, ?) RETURNING *;

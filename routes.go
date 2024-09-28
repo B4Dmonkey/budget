@@ -14,4 +14,9 @@ var routes = []Route{
 		"/",
 		WithMiddleware(root, logger),
 	},
+	{
+		POST,
+		"/upload",
+		WithMiddleware(upload, logger),
+	},
 }

@@ -29,7 +29,7 @@ func SaveFileToDisk(header *multipart.FileHeader, file multipart.File) error {
 func PersistDocumentMetaData(ctx context.Context, header *multipart.FileHeader, file multipart.File) ( error) {
 	db := orm.New(conn)
 
-	document, err := db.CreateDocument(ctx, orm.CreateDocumentParams{
+	document, err := db.CreateDocumentMeta(ctx, orm.CreateDocumentMetaParams{
 		Name:         header.Filename,
 		PersistedLoc: header.Filename,
 	})

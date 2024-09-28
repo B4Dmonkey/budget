@@ -24,6 +24,12 @@ run-tests:
 	@go test -v ./...
 
 nuke: db-drop
+	@echo "Nuking the database..."
+	@dbmate drop
+	@echo "Nuking the orm..."
+	@rm -rf $(DB_DIR)/orm
+	@echo "Nuke deployed..."
+	@echo "You have become Death, the destroyer of worlds..."
 
 binary:
 	@echo "Building $(APP_NAME)..."
@@ -41,10 +47,6 @@ db-migration-up:
 
 db-migration-down:
 	@dbmate --migrations-dir=$(DB_MIGRATION_DIR) --schema-file=$(DB_SCHEMA_FILE) rollback
-
-db-drop:
-	@echo "Dropping database..."
-	@dbmate drop
 
 db-seed-database seed:
 	@echo "No need to seed the database..."

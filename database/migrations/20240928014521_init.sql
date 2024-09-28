@@ -1,5 +1,5 @@
 -- migrate:up
-CREATE TABLE documents (
+CREATE TABLE documents_meta (
     id UUID PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     persisted_loc VARCHAR(255) NOT NULL,

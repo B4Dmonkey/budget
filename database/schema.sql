@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS "schema_migrations" (version varchar(128) primary key);
-CREATE TABLE documents (
+CREATE TABLE documents_meta (
     id UUID PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     persisted_loc VARCHAR(255) NOT NULL,

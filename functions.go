@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/csv"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
@@ -26,7 +28,7 @@ func SaveFileToDisk(header *multipart.FileHeader, file multipart.File) error {
 	return nil
 }
 
-func PersistDocumentMetaData(ctx context.Context, header *multipart.FileHeader, file multipart.File) ( error) {
+func PersistDocumentMetaData(ctx context.Context, header *multipart.FileHeader, file multipart.File) (string, error) {
 	db := orm.New(conn)
 
 	document, err := db.CreateDocumentMeta(ctx, orm.CreateDocumentMetaParams{
@@ -35,16 +37,62 @@ func PersistDocumentMetaData(ctx context.Context, header *multipart.FileHeader, 
 	})
 
 	if err != nil {
-		return errors.New("Error creating document record: " + err.Error())
+		return "", errors.New("Error creating document record: " + err.Error())
 	}
 
 	log.Println("Document created:", document.ID)
 
-	return nil
+	return document.ID, nil
 }
 
-func PersistTransactions(ctx context.Context, header *multipart.FileHeader, file multipart.File) (error) {
+const (
+	Details int = iota
+	PostingDate
+	Description
+	Amount
+	Type
+	Balance
+)
+
+func PersistTransactions(ctx context.Context, header *multipart.FileHeader, file multipart.File) error {
+	// tx, err := conn.Begin()
+	// if err != nil {
+	// 	return err
+	// }
+	// defer tx.Rollback()
+
 	// db := orm.New(conn)
+	// txdb := db.WithTx(tx)
+
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return err
+	}
+
+	reader := csv.NewReader(file)
+
+	if _, err := reader.Read(); err != nil {
+		return fmt.Errorf("error skipping headers: %v", err)
+	}
+
+	for {
+		record, err := reader.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			if parseErr, ok := err.(*csv.ParseError); ok && parseErr.Err != csv.ErrFieldCount {
+				return err
+			}
+		}
+
+		if parseErr, ok := err.(*csv.ParseError); ok && parseErr.Err == csv.ErrFieldCount {
+			log.Println("Error parsing record:", record)
+		}
+
+		log.Println("CSV Record:", record)
+	}
+
+	//
 
 	// transactions, err := db.CreateTransactions(ctx, orm.CreateTransactionsParams{
 	// 	Name: header.Filename,

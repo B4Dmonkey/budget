@@ -31,12 +31,14 @@ func upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// * save the location to the database
-	if err := PersistDocumentMetaData(r.Context(), header, file); err != nil {
+	documentID, err := PersistDocumentMetaData(r.Context(), header, file)
+	if err != nil {
 		log.Println("Error saving document metadata:", err)
 		http.Error(w, "Error saving file", http.StatusInternalServerError)
 		return
 	}
 
+	log.Println("Document ID:", documentID)
 	if err := PersistTransactions(r.Context(), header, file); err != nil {
 		log.Println("Error saving document metadata:", err)
 		http.Error(w, "Error saving file", http.StatusInternalServerError)

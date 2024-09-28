@@ -8,7 +8,5 @@ sql:
         package: "orm"
         out: "database/orm"
         overrides:
-          - db_type: "uuid"
-            go_type:
-              import: "github.com/google/uuid"
-              type: "UUID"
+          - column: "*.id"
+            go_type: "string"

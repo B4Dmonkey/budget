@@ -40,7 +40,7 @@ binary:
 	@echo "Build complete."
 
 pheonix: nuke db
-	@echo "The pheonix rises once again..."
+	@echo "From the ashes the pheonix rises once again..."
 
 # Data base migrations
 db-build db: db-migration-up sql-quries 

@@ -18,6 +18,9 @@ endif
 dev:
 	@~/go/bin/air
 
+vscode-run:
+	@go run . 
+
 test: db-build seed run-tests 
 
 run-tests:
@@ -35,6 +38,9 @@ binary:
 	@echo "Building $(APP_NAME)..."
 	@CGO_ENABLED=0 go build -ldflags="-w -s" -o $(APP_BINARY_DIR)/$(APP_NAME) *.go
 	@echo "Build complete."
+
+pheonix: nuke db
+	@echo "The pheonix rises once again..."
 
 # Data base migrations
 db-build db: db-migration-up sql-quries 

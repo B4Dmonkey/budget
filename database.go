@@ -39,13 +39,17 @@ func newUUID() string {
 }
 
 func currentTimestamp() string {
-	return time.Now().Format(time.RFC3339)
+	return time.Now().Format("2006-01-02 15:04:05")
 }
 
 func CreateDatabase() error {
 	log.Println("Connecting to database...")
 	var err error
 	DATABASE_LOC := os.Getenv("DATABASE_LOC")
+
+	if DATABASE_LOC == "" {
+		return fmt.Errorf("DATABASE_LOC is not set")
+	}
 
 	conn, err = sql.Open("sqlite3_extended", DATABASE_LOC)
 	if conn == nil || err != nil {

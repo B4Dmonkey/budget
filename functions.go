@@ -42,3 +42,19 @@ func PersistDocumentMetaData(ctx context.Context, header *multipart.FileHeader, 
 
 	return nil
 }
+
+func PersistTransactions(ctx context.Context, header *multipart.FileHeader, file multipart.File) (error) {
+	// db := orm.New(conn)
+
+	// transactions, err := db.CreateTransactions(ctx, orm.CreateTransactionsParams{
+	// 	Name: header.Filename,
+	// })
+
+	// if err != nil {
+	// 	return errors.New("Error creating transactions record: " + err.Error())
+	// }
+
+	// log.Println("Transactions created:", transactions.ID)
+
+	return nil
+}

@@ -37,6 +37,11 @@ func upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := PersistTransactions(r.Context(), header, file); err != nil {
+		log.Println("Error saving document metadata:", err)
+		http.Error(w, "Error saving file", http.StatusInternalServerError)
+		return
+	}
 	// * go through the db and create or update the records
 	// * respond with the values
 	// Log the file name

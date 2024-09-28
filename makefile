@@ -23,7 +23,7 @@ test: db-build seed run-tests
 run-tests:
 	@go test -v ./...
 
-nuke: db-drop
+nuke:
 	@echo "Nuking the database..."
 	@dbmate drop
 	@echo "Nuking the orm..."

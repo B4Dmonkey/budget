@@ -15,6 +15,26 @@
       <input type="file" id="file" name="file">
       <button type="submit">Upload</button>
     </form>
+    <h2>Unprocessed transactions</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Description</th>
+          <th>Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#unprocessedTransactions}}
+          <tr>
+            <td>{{PostingDate}}</td>
+            <td>{{Amount}}</td>
+            <td>{{Description}}</td>
+            <td>{{Balance}}</td>
+          </tr>
+        {{/unprocessedTransactions}}
+      </tbody>
   </main>
 </body>
 </html>

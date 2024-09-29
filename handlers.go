@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"my-budget/database/orm"
 	"net/http"
+	"time"
 )
 
 func root(w http.ResponseWriter, r *http.Request) {
@@ -11,8 +13,18 @@ func root(w http.ResponseWriter, r *http.Request) {
 		Render(w, "404page")
 		return
 	}
-	
-	Render(w, "")
+	db := orm.New(conn)
+	startDate := time.Date(2024, time.September, 1, 0, 0, 0, 0, time.Local)
+	endDate := time.Date(2024, time.September, 30, 23, 59, 59, 999999999, time.Local)
+	pending_transactions, err := db.GetTransactionsInDateRange(r.Context(), orm.GetTransactionsInDateRangeParams{
+		PostingDate: startDate,
+		PostingDate_2:   endDate,
+	})
+	if err != nil {
+		log.Println("Error getting pending transactions:", err)
+	}
+	log.Println("Pending transactions:", pending_transactions)
+	Render(w, "", pending_transactions)
 }
 
 func upload(w http.ResponseWriter, r *http.Request) {

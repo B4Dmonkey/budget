@@ -8,8 +8,7 @@ import (
 	"github.com/cbroglie/mustache"
 )
 
-func Render(w http.ResponseWriter, file_name_look_up string) {
-	log.Print("Rendering template")
+func Render(w http.ResponseWriter, file_name_look_up string, template_data ...interface{}) {
 	if file_name_look_up == "" {
 		file_name_look_up = "views/pages/home.mst"
 	}
@@ -26,7 +25,7 @@ func Render(w http.ResponseWriter, file_name_look_up string) {
 	}
 
 	parsedTemplate, _ := mustache.ParseString(string(template))
-	content, err := parsedTemplate.Render()
+	content, err := parsedTemplate.Render(template_data)
 	if err != nil {
 		log.Println("Error rendering template", err)
 		http.Error(w, "Internal server error two", http.StatusInternalServerError)

@@ -57,4 +57,5 @@ func TestUpload(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// todo: should finish this request
 }

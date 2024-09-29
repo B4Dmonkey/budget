@@ -49,15 +49,6 @@ func PersistDocumentMetaData(ctx context.Context, header *multipart.FileHeader, 
 	return document.ID, nil
 }
 
-const (
-	Details int = iota
-	PostingDate
-	Description
-	Amount
-	Type
-	Balance
-)
-
 func PersistTransactions(ctx context.Context, documentID string, header *multipart.FileHeader, file multipart.File) error {
 	tx, err := conn.Begin()
 	if err != nil {
@@ -77,7 +68,7 @@ func PersistTransactions(ctx context.Context, documentID string, header *multipa
 	if _, err := reader.Read(); err != nil {
 		return fmt.Errorf("error skipping headers: %v", err)
 	}
-
+	log.Println("Looping through records...")
 	for {
 		record, err := reader.Read()
 		if err != nil {
@@ -89,9 +80,6 @@ func PersistTransactions(ctx context.Context, documentID string, header *multipa
 			}
 		}
 
-		if parseErr, ok := err.(*csv.ParseError); ok && parseErr.Err == csv.ErrFieldCount {
-			log.Println("Error parsing record:", record)
-		}
 		amount, err := strconv.ParseFloat(record[Amount], 64)
 		if err != nil {
 			log.Println("Error parsing amount:", err)
@@ -134,8 +122,8 @@ func PersistTransactions(ctx context.Context, documentID string, header *multipa
 			log.Println("Error creating transaction record:", err)
 			continue
 		}
-		log.Println("CSV Record:", record)
 	}
 	tx.Commit()
+	log.Println("Transactions created")
 	return nil
 }

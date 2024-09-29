@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/csv"
 	"errors"
 	"fmt"
@@ -10,6 +11,9 @@ import (
 	"mime/multipart"
 	"my-budget/database/orm"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 )
 
 func SaveFileToDisk(header *multipart.FileHeader, file multipart.File) error {
@@ -54,15 +58,15 @@ const (
 	Balance
 )
 
-func PersistTransactions(ctx context.Context, header *multipart.FileHeader, file multipart.File) error {
-	// tx, err := conn.Begin()
-	// if err != nil {
-	// 	return err
-	// }
-	// defer tx.Rollback()
+func PersistTransactions(ctx context.Context, documentID string, header *multipart.FileHeader, file multipart.File) error {
+	tx, err := conn.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
 
-	// db := orm.New(conn)
-	// txdb := db.WithTx(tx)
+	db := orm.New(conn)
+	txdb := db.WithTx(tx)
 
 	if _, err := file.Seek(0, io.SeekStart); err != nil {
 		return err
@@ -88,21 +92,50 @@ func PersistTransactions(ctx context.Context, header *multipart.FileHeader, file
 		if parseErr, ok := err.(*csv.ParseError); ok && parseErr.Err == csv.ErrFieldCount {
 			log.Println("Error parsing record:", record)
 		}
+		amount, err := strconv.ParseFloat(record[Amount], 64)
+		if err != nil {
+			log.Println("Error parsing amount:", err)
+			continue
+		}
 
+		var balance sql.NullFloat64
+		if strings.TrimSpace(record[Balance]) == "" {
+			balance = sql.NullFloat64{
+				Float64: 0,
+				Valid:   false,
+			}
+		} else {
+			parsedBalance, err := strconv.ParseFloat(record[Balance], 64)
+			if err != nil {
+				log.Println("Error parsing balance:", err)
+				continue
+			}
+			balance = sql.NullFloat64{
+				Float64: parsedBalance,
+				Valid:   true,
+			}
+		}
+
+		postingDate, err := time.Parse("01/02/2006", record[PostingDate])
+		if err != nil {
+			log.Println("Error parsing posting date:", err)
+			continue
+		}
+
+		if err := txdb.CreateTransaction(ctx, orm.CreateTransactionParams{
+			DocumentID:  documentID,
+			Details:     record[Details],
+			PostingDate: postingDate,
+			Description: record[Description],
+			Amount:      amount,
+			Type:        record[Type],
+			Balance:     balance,
+		}); err != nil {
+			log.Println("Error creating transaction record:", err)
+			continue
+		}
 		log.Println("CSV Record:", record)
 	}
-
-	//
-
-	// transactions, err := db.CreateTransactions(ctx, orm.CreateTransactionsParams{
-	// 	Name: header.Filename,
-	// })
-
-	// if err != nil {
-	// 	return errors.New("Error creating transactions record: " + err.Error())
-	// }
-
-	// log.Println("Transactions created:", transactions.ID)
-
+	tx.Commit()
 	return nil
 }

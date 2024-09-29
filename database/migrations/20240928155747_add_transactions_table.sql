@@ -10,7 +10,7 @@ CREATE TABLE
     description TEXT NOT NULL,
     amount DECIMAL(10, 2) NOT NULL,
     type VARCHAR(50) NOT NULL, -- e.g., "credit" or "debit"
-    balance DECIMAL(10, 2) NOT NULL,
+    balance DECIMAL(10, 2),
     FOREIGN KEY (document_id) REFERENCES documents_meta (id)
   );
 

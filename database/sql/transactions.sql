@@ -12,3 +12,14 @@ INSERT INTO
   )
 VALUES
   (UUID (), ?, ?, ?, ?, ?, ?, ?);
+
+-- name: GetTransactionsInDateRange :many
+SELECT
+  *
+FROM
+  transactions
+WHERE
+  posting_date >= ?
+  AND posting_date <= ?
+ORDER BY
+  posting_date DESC;

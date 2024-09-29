@@ -11,6 +11,7 @@ func root(w http.ResponseWriter, r *http.Request) {
 		Render(w, "404page")
 		return
 	}
+	
 	Render(w, "")
 }
 

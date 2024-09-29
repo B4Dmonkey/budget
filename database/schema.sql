@@ -19,7 +19,26 @@ CREATE TABLE transactions (
     balance DECIMAL(10, 2),
     FOREIGN KEY (document_id) REFERENCES documents_meta (id)
   );
+CREATE TABLE categories (
+    id UUID PRIMARY KEY,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    name VARCHAR(255) NOT NULL,
+    income_or_expense TEXT CHECK (income_or_expense IN ('income', 'expense')) NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL
+  );
+CREATE TABLE budget_items (
+    id UUID PRIMARY KEY,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    transaction_date DATE NOT NULL,
+    category_id UUID NOT NULL,
+    description TEXT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (category_id) REFERENCES categories (id)
+  );
 -- Dbmate schema migrations
 INSERT INTO "schema_migrations" (version) VALUES
   ('20240928014521'),
-  ('20240928155747');
+  ('20240928155747'),
+  ('20240929005504');

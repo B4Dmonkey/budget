@@ -37,15 +37,6 @@ func (m MockDataSlice) Template() (*mustache.Template, error) {
 	return mustache.ParseString(template)
 }
 
-func (m MockDataSlice) Render() (string, error) {
-	template, err := m.Template()
-	if err != nil {
-		return "", err
-	}
-	mapping := m.Mapping()
-	return template.Render(mapping)
-}
-
 func TestRender(t *testing.T) {
 	app := New()
 	app.AddHandler(MethodGet, "/foo-boo", func(ctx Context) error {

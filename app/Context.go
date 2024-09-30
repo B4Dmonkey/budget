@@ -10,7 +10,7 @@ func (c *Context) Render(statusCode int, view View) error {
 	if err := c.Res.Status(statusCode); err != nil {
 		return err
 	}
-	content, err := view.Render()
+	content, err := Render(view)
 	if err != nil {
 		return err
 	}

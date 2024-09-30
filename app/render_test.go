@@ -14,14 +14,16 @@ type MockData struct {
 	NumberField float64
 }
 
-func (m MockData) Render() (string, error) {
-	template := m.Template()
-	parsedTemplate, _ := mustache.ParseString(template)
-	return parsedTemplate.Render(template, m)
+func (m MockData) Mapping() interface{} {
+	return nil
 }
 
-func (m MockData) Template() string {
-	return "{{StringField}}{{NumberField}}"
+func (m MockData) Template() (*mustache.Template, error) {
+	return nil, nil
+}
+
+func (m MockData) Render() (string, error) {
+	return "Don DADA!!!", nil
 }
 
 type MockDataSlice []MockData
@@ -39,12 +41,17 @@ func (m MockDataSlice) Template() (*mustache.Template, error) {
 
 func TestRender(t *testing.T) {
 	app := New()
-	app.AddHandler(MethodGet, "/foo-boo", func(ctx Context) error {
+	app.Get("/foo-boo", func(ctx Context) error {
 		mock_slice_data := []MockData{
 			{"Foo", 64},
 			{"Boo", 78},
 		}
 		mock_data := MockDataSlice(mock_slice_data)
+		return ctx.Render(http.StatusOK, mock_data)
+	})
+
+	app.Get("/overwritten-render", func(ctx Context) error {
+		mock_data := new(MockData)
 		return ctx.Render(http.StatusOK, mock_data)
 	})
 
@@ -61,6 +68,13 @@ func TestRender(t *testing.T) {
 			method:      "GET",
 			uri:         "/foo-boo",
 			expected:    "Foo64Boo78",
+		},
+		{
+			description: "GET /overwritten-render should return status 200 and render Don DADA!!!",
+			code:        200,
+			method:      "GET",
+			uri:         "/overwritten-render",
+			expected:    "Don DADA!!!",
 		},
 	}
 	for _, test := range tests {

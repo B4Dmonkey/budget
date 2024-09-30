@@ -5,3 +5,7 @@ type Context struct {
 	Res Response
 	Next HandlerFunc
 }
+
+// func (c *Context) Render(view View) error {
+// 	return view.Render()
+// }

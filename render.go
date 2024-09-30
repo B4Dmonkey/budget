@@ -34,3 +34,10 @@ func Render(w http.ResponseWriter, file_name_look_up string, template_data ...in
 
 	fmt.Fprint(w, content)
 }
+
+type ViewModel interface {
+	Template() string
+	Data() interface{}
+	Render(w http.ResponseWriter)
+}
+

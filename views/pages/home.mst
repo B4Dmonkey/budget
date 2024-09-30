@@ -26,14 +26,14 @@
         </tr>
       </thead>
       <tbody>
-        {{#unprocessedTransactions}}
+        {{#UnprocessedTransactions}}
           <tr>
             <td>{{PostingDate}}</td>
             <td>{{Amount}}</td>
             <td>{{Description}}</td>
             <td>{{Balance}}</td>
           </tr>
-        {{/unprocessedTransactions}}
+        {{/UnprocessedTransactions}}
       </tbody>
   </main>
 </body>

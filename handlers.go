@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+
 func root(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		w.WriteHeader(http.StatusNotFound)
@@ -17,14 +18,15 @@ func root(w http.ResponseWriter, r *http.Request) {
 	startDate := time.Date(2024, time.September, 1, 0, 0, 0, 0, time.Local)
 	endDate := time.Date(2024, time.September, 30, 23, 59, 59, 999999999, time.Local)
 	pending_transactions, err := db.GetTransactionsInDateRange(r.Context(), orm.GetTransactionsInDateRangeParams{
-		PostingDate: startDate,
-		PostingDate_2:   endDate,
+		PostingDate:   startDate,
+		PostingDate_2: endDate,
 	})
 	if err != nil {
 		log.Println("Error getting pending transactions:", err)
 	}
-	log.Println("Pending transactions:", pending_transactions)
-	Render(w, "", pending_transactions)
+	transactions_slice := TransactionSlice(pending_transactions)
+	transactions_slice.Render(w)
+	// Render(w, "", map[string][]orm.Transaction{"unprocessedTransactions": pending_transactions})
 }
 
 func upload(w http.ResponseWriter, r *http.Request) {

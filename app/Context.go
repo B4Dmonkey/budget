@@ -6,6 +6,6 @@ type Context struct {
 	Next HandlerFunc
 }
 
-// func (c *Context) Render(view View) error {
-// 	return view.Render()
-// }
+func (c *Context) Render(statusCode int) error {
+	return c.Res.Status(statusCode)
+}

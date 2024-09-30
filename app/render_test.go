@@ -1,6 +1,8 @@
 package app
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/cbroglie/mustache"
@@ -34,13 +36,13 @@ func (m MockDataSlice) Render() (string, error) {
 	return parsedTemplate.Render(template, map[string]MockDataSlice{"MockDataSlice": m})
 }
 
-func TestRender(t *testing.T) {
-	expected := "Foo64"
-	mock_data := MockData{"Foo", 64}
-	result, err := mock_data.Render()
-	assert.Nil(t, err)
-	assert.Equal(t, expected, result)
-}
+// func TestRender(t *testing.T) {
+// 	expected := "Foo64"
+// 	mock_data := MockData{"Foo", 64}
+// 	result, err := mock_data.Render()
+// 	assert.Nil(t, err)
+// 	assert.Equal(t, expected, result)
+// }
 
 func TestRendersMultipleDataPoints(t *testing.T) {
 	expected := "Foo64Boo78"
@@ -52,4 +54,34 @@ func TestRendersMultipleDataPoints(t *testing.T) {
 	result, err := mock_data.Render()
 	assert.Nil(t, err)
 	assert.Equal(t, expected, result)
+}
+
+func TestRender(t *testing.T) {
+	app := New()
+	app.AddHandler(MethodGet, "/foo-boo", func(ctx Context) error {
+		return ctx.Render(http.StatusOK)
+	})
+
+	tests := []struct {
+		description string
+		code        int
+		method      string
+		uri         string
+		expected   string
+	}{
+		{
+			description: "GET /foo-boo should return status 200 and render Foo64Boo78",
+			code:        200,
+			method:      "GET",
+			uri:         "/foo-boo",
+			expected:   "Foo64Boo78",
+		},
+	}
+	for _, test := range tests {
+		req, _ := http.NewRequest(test.method, test.uri, nil)
+		w := httptest.NewRecorder()
+		app.mux.ServeHTTP(w, req)
+		assert.Equal(t, test.code, w.Code, test.description)
+		assert.Contains(t, w.Body.String(), test.expected, test.description)
+	}
 }

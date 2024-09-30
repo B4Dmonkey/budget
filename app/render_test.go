@@ -26,34 +26,24 @@ func (m MockData) Template() string {
 
 type MockDataSlice []MockData
 
-func (m MockDataSlice) Template() string {
-	return "{{#MockDataSlice}}{{StringField}}{{NumberField}}{{/MockDataSlice}}"
+func (m MockDataSlice) Mapping() interface{} {
+	return map[string]interface{}{
+		"MockDataSlice": m,
+	}
+}
+
+func (m MockDataSlice) Template() (*mustache.Template, error) {
+	template := "{{#MockDataSlice}}{{StringField}}{{NumberField}}{{/MockDataSlice}}"
+	return mustache.ParseString(template)
 }
 
 func (m MockDataSlice) Render() (string, error) {
-	template := m.Template()
-	parsedTemplate, _ := mustache.ParseString(template)
-	return parsedTemplate.Render(template, map[string]MockDataSlice{"MockDataSlice": m})
-}
-
-// func TestRender(t *testing.T) {
-// 	expected := "Foo64"
-// 	mock_data := MockData{"Foo", 64}
-// 	result, err := mock_data.Render()
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, expected, result)
-// }
-
-func TestRendersMultipleDataPoints(t *testing.T) {
-	expected := "Foo64Boo78"
-	mock_slice_data := []MockData{
-		{"Foo", 64},
-		{"Boo", 78},
+	template, err := m.Template()
+	if err != nil {
+		return "", err
 	}
-	mock_data := MockDataSlice(mock_slice_data)
-	result, err := mock_data.Render()
-	assert.Nil(t, err)
-	assert.Equal(t, expected, result)
+	mapping := m.Mapping()
+	return template.Render(mapping)
 }
 
 func TestRender(t *testing.T) {
@@ -72,14 +62,14 @@ func TestRender(t *testing.T) {
 		code        int
 		method      string
 		uri         string
-		expected   string
+		expected    string
 	}{
 		{
 			description: "GET /foo-boo should return status 200 and render Foo64Boo78",
 			code:        200,
 			method:      "GET",
 			uri:         "/foo-boo",
-			expected:   "Foo64Boo78",
+			expected:    "Foo64Boo78",
 		},
 	}
 	for _, test := range tests {

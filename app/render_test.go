@@ -59,7 +59,12 @@ func TestRendersMultipleDataPoints(t *testing.T) {
 func TestRender(t *testing.T) {
 	app := New()
 	app.AddHandler(MethodGet, "/foo-boo", func(ctx Context) error {
-		return ctx.Render(http.StatusOK)
+		mock_slice_data := []MockData{
+			{"Foo", 64},
+			{"Boo", 78},
+		}
+		mock_data := MockDataSlice(mock_slice_data)
+		return ctx.Render(http.StatusOK, mock_data)
 	})
 
 	tests := []struct {

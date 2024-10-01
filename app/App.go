@@ -53,5 +53,13 @@ func (a *App) AddHandler(method string, path string, handler HandlerFunc) {
 	})
 }
 
+func (a *App) Listen(addr string) error {
+	a.server = &http.Server{
+		Addr:    addr,
+		Handler: a.mux,
+	}
+	return a.server.ListenAndServe()
+}
+
 func (a *App) Get(pattern string, handler HandlerFunc)  { a.AddHandler(MethodGet, pattern, handler) }
 func (a *App) Post(pattern string, handler HandlerFunc) { a.AddHandler(MethodPost, pattern, handler) }

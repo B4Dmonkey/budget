@@ -62,3 +62,11 @@ func TestAppHTTPMethods(t *testing.T) {
 		assert.Equal(t, test.code, w.Code, test.description)
 	}
 }
+
+func TestAppListen(t *testing.T) {
+	app := New()
+	go func() {
+		err := app.Listen(":8080")
+		assert.NotNil(t, err, "Listen should return an error")
+	}()
+}

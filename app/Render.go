@@ -3,7 +3,7 @@ package app
 import "github.com/cbroglie/mustache"
 
 type View interface {
-	Mapping() interface{}
+	Binding() interface{}
 	Template() (*mustache.Template, error)
 }
 
@@ -20,6 +20,6 @@ func Render(view View) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	mapping := view.Mapping()
-	return template.Render(mapping)
+	viewBinding := view.Binding()
+	return template.Render(viewBinding)
 }

@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"embed"
+	"errors"
+	"my-budget/app"
+	"my-budget/database/orm"
 
 	// "io/fs"
 	"log"
@@ -18,7 +21,7 @@ import (
 //go:embed views/*
 var viewsDir embed.FS
 
-func main() {
+func main2() {
 	ctx, cancel := context.WithCancel(context.Background())
 	env := NewEnv()
 	var wg sync.WaitGroup
@@ -33,4 +36,32 @@ func main() {
 	cancel()
 	wg.Wait()
 	log.Println("HTTP server stopped")
+}
+
+func New() (*app.App, error) {
+	if err := CreateDatabase(); err != nil {
+		return nil, errors.New("Unable to create the file: " + err.Error())
+	}
+
+	app := app.New(
+		app.WithDbQueries(orm.New(conn)),
+	)
+
+	app.Get("/", root2)
+	// app.Post("/upload", upload)
+
+	return app, nil
+}
+
+func main() {
+	app, err := New()
+	env := NewEnv()
+
+	if err != nil {
+		log.Fatalf("Failed to create app: %v", err)
+	}
+
+	if err := app.Listen(env.Addr()); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
 }

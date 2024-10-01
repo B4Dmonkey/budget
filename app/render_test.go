@@ -14,7 +14,7 @@ type MockData struct {
 	NumberField float64
 }
 
-func (m MockData) Mapping() interface{} {
+func (m MockData) Binding() interface{} {
 	return nil
 }
 
@@ -28,7 +28,7 @@ func (m MockData) Render() (string, error) {
 
 type MockDataSlice []MockData
 
-func (m MockDataSlice) Mapping() interface{} {
+func (m MockDataSlice) Binding() interface{} {
 	return map[string]interface{}{
 		"MockDataSlice": m,
 	}

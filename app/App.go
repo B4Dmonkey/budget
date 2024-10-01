@@ -2,17 +2,16 @@ package app
 
 import (
 	"net/http"
-
 )
 
 type HandlerFunc func(Context) error
 type AppConfigFunc func(*AppConfig)
+type Queries interface{}
 
 type AppConfig struct {
-	mux          *http.ServeMux
-	server       *http.Server
-	DbConnection string
-	ORM          interface{}
+	mux       *http.ServeMux
+	server    *http.Server
+	dbQueries interface{}
 }
 
 type App struct {
@@ -25,13 +24,19 @@ func defaultAppConfig() AppConfig {
 	}
 }
 
+func WithDbQueries(dbQueries interface{}) AppConfigFunc {
+	return func(cfg *AppConfig) {
+		cfg.dbQueries = dbQueries
+	}
+}
+
 func New(overrides ...AppConfigFunc) *App {
 	cfg := defaultAppConfig()
 	for _, override := range overrides {
 		override(&cfg)
 	}
 	return &App{
-		AppConfig: cfg,	
+		AppConfig: cfg,
 	}
 }
 
@@ -42,6 +47,7 @@ func (a *App) AddHandler(method string, path string, handler HandlerFunc) {
 		ctx := Context{
 			Req: Request{r},
 			Res: Response{w},
+			DB:	a.dbQueries,
 		}
 		handler(ctx)
 	})

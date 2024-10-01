@@ -1,6 +1,7 @@
 package app
 
 type Context struct {
+	DB   interface{}
 	Req  Request
 	Res  Response
 	Next HandlerFunc
@@ -16,4 +17,11 @@ func (c *Context) Render(statusCode int, view View) error {
 	}
 	_, err = c.Res.w.Write([]byte(content))
 	return err
+}
+
+func (c *Context) Send(value string) error {
+	if _, err := c.Res.w.Write([]byte(value)); err != nil {
+		return err
+	}
+	return nil
 }

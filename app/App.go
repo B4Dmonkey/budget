@@ -1,22 +1,37 @@
 package app
 
-import "net/http"
+import (
+	"net/http"
+
+)
 
 type HandlerFunc func(Context) error
+type AppConfigFunc func(*AppConfig)
 
-type Config struct {
-	RequestMethods []string
+type AppConfig struct {
+	mux          *http.ServeMux
+	server       *http.Server
+	DbConnection string
+	ORM          interface{}
 }
+
 type App struct {
-	mux    *http.ServeMux
-	server *http.Server
+	AppConfig
 }
 
-func New() *App {
-	mux := http.NewServeMux()
+func defaultAppConfig() AppConfig {
+	return AppConfig{
+		mux: http.NewServeMux(),
+	}
+}
 
+func New(overrides ...AppConfigFunc) *App {
+	cfg := defaultAppConfig()
+	for _, override := range overrides {
+		override(&cfg)
+	}
 	return &App{
-		mux: mux,
+		AppConfig: cfg,	
 	}
 }
 

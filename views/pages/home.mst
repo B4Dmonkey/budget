@@ -10,7 +10,7 @@
 <body>
   <main id="app">
     <h1>My budget</h1>
-    <form hx-post="/upload" enctype="multipart/form-data">
+    <form hx-post="/documents" enctype="multipart/form-data">
       <label for="file">Upload File:</label>
       <input type="file" id="file" name="file">
       <button type="submit">Upload</button>

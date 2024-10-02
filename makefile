@@ -24,7 +24,7 @@ vscode-run:
 test: db-build seed run-tests 
 
 run-tests:
-	@go test -v ./...
+	@go test -v ./... -cover
 
 nuke:
 	@echo "Nuking the database..."

@@ -12,8 +12,8 @@ func root(ctx app.Context) error {
 	return ctx.Render(http.StatusOK, homePage)
 }
 
-func upload(ctx app.Context) error {
-	log.Println("Upload handler")
+func documents(ctx app.Context) error {
+	log.Println("Documents handler")
 	file, header, err := ctx.Req.FormFile("file")
 	if err != nil {
 		log.Println("Error reading file:", err)

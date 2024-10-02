@@ -29,6 +29,7 @@ func (h HomePage) Binding() interface{} {
 
 	return map[string]TransactionSlice{"UnprocessedTransactions": pending_transactions}
 }
+
 func (h HomePage) Template() (*mustache.Template, error) {
 	if template_file, err := viewsDir.ReadFile("views/pages/home.mst"); err != nil {
 		return nil, err

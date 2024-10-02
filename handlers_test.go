@@ -27,7 +27,7 @@ func TestRoot(t *testing.T) {
 	_, err = client.Do(req)
 	assert.Nil(t, err, "Error performing request")
 }
-func TestUpload(t *testing.T) {
+func TestDocuments(t *testing.T) {
 	mockEnv := new(MockEnvConfig)
 	mockEnv.On("IsDev").Return(true)
 	mockEnv.On("Addr").Return("test_address")

@@ -80,28 +80,22 @@ func PersistTransactions(ctx context.Context, documentID string, header *multipa
 			}
 		}
 
-		amount, err := strconv.ParseFloat(record[Amount], 64)
+		amount, err := strconv.ParseInt(strings.Replace(record[Amount], ".", "", -1), 10, 64)
 		if err != nil {
 			log.Println("Error parsing amount:", err)
 			continue
 		}
 
-		var balance sql.NullFloat64
+		var balance sql.NullInt64
 		if strings.TrimSpace(record[Balance]) == "" {
-			balance = sql.NullFloat64{
-				Float64: 0,
-				Valid:   false,
-			}
+			balance = sql.NullInt64{Valid: false}
 		} else {
-			parsedBalance, err := strconv.ParseFloat(record[Balance], 64)
+			parsed_balance, err := strconv.ParseInt(strings.Replace(record[Balance], ".", "", -1), 10, 64)
 			if err != nil {
 				log.Println("Error parsing balance:", err)
 				continue
 			}
-			balance = sql.NullFloat64{
-				Float64: parsedBalance,
-				Valid:   true,
-			}
+			balance = sql.NullInt64{Int64: parsed_balance, Valid: true}
 		}
 
 		postingDate, err := time.Parse("01/02/2006", record[PostingDate])

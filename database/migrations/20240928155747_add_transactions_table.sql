@@ -8,9 +8,9 @@ CREATE TABLE
     details TEXT NOT NULL,
     posting_date DATE NOT NULL,
     description TEXT NOT NULL,
-    amount DECIMAL(10, 2) NOT NULL,
+    amount INTEGER NOT NULL,
     type VARCHAR(50) NOT NULL, -- e.g., "credit" or "debit"
-    balance DECIMAL(10, 2),
+    balance INTEGER,
     FOREIGN KEY (document_id) REFERENCES documents_meta (id)
   );
 

@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/cbroglie/mustache"
 	"log"
 	"my-budget/app"
 	"my-budget/database/orm"
 	"strconv"
 	"time"
+
+	"github.com/cbroglie/mustache"
 )
 
 type TransactionViewModelSlice []TransactionViewModel
@@ -16,8 +17,8 @@ type HomePage struct {
 }
 
 type TransactionViewModel struct {
-	Date       	string
-	Amount      string
+	Date        string
+	Amount      int64
 	Description string
 	Balance     string
 }
@@ -37,17 +38,19 @@ func (h HomePage) Binding() interface{} {
 
 	var transactionsView TransactionViewModelSlice
 	for _, transaction := range pending_transactions {
-		var balance string
-		if transaction.Balance.Valid {
-			balance = strconv.FormatFloat(transaction.Balance.Float64, 'f', 2, 64)
+		balance, _ := transaction.Balance.Value()
+		var balanceStr string
+		if balance == nil {
+			balanceStr = ""
 		} else {
-			balance = ""
+			balanceStr = strconv.FormatInt(balance.(int64), 10)
 		}
+
 		transactionsView = append(transactionsView, TransactionViewModel{
 			Date:        transaction.PostingDate.Format("2006-01-02"),
-			Amount:      strconv.FormatFloat(transaction.Amount, 'f', 2, 64),
+			Amount:      transaction.Amount,
 			Description: transaction.Description,
-			Balance:     balance,
+			Balance:     balanceStr,
 		})
 	}
 	return map[string]TransactionViewModelSlice{"UnprocessedTransactions": transactionsView}

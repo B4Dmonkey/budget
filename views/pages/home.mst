@@ -28,7 +28,7 @@
       <tbody>
         {{#UnprocessedTransactions}}
           <tr>
-            <td>{{PostingDate}}</td>
+            <td>{{Date}}</td>
             <td>{{Amount}}</td>
             <td>{{Description}}</td>
             <td>{{Balance}}</td>

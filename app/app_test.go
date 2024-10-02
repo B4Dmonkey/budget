@@ -18,15 +18,15 @@ func TestNewApp(t *testing.T) {
 func TestAppHTTPMethods(t *testing.T) {
 	app := New()
 
-	app.AddHandler(MethodGet, "/foo", func(ctx Context) error {
-		return ctx.Res.Status(218)
+	app.AddHandler(http.MethodGet, "/foo", func(ctx Context) error {
+		return ctx.Status(218)
 	})
 	app.Get("/", func(ctx Context) error {
-		return ctx.Res.Status(http.StatusOK)
+		return ctx.Status(http.StatusOK)
 	})
 
 	app.Post("/", func(ctx Context) error {
-		return ctx.Res.Status(http.StatusCreated)
+		return ctx.Status(http.StatusCreated)
 	})
 
 	tests := []struct {

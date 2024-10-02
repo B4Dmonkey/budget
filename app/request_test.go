@@ -17,7 +17,7 @@ func TestRequestContext(t *testing.T) {
 		return nil
 	})
 
-	req, _ := http.NewRequest(MethodGet, "/", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
 	app.mux.ServeHTTP(w, req)
 }

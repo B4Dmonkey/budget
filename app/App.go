@@ -45,8 +45,8 @@ func (a *App) AddHandler(method string, path string, handler HandlerFunc) {
 	pattern := method + " " + path
 	a.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 		ctx := Context{
-			Req: Request{r},
-			Res: Response{w},
+			Req: r,
+			Res: w,
 			DB:	a.dbQueries,
 		}
 		handler(ctx)
@@ -61,5 +61,5 @@ func (a *App) Listen(addr string) error {
 	return a.server.ListenAndServe()
 }
 
-func (a *App) Get(pattern string, handler HandlerFunc)  { a.AddHandler(MethodGet, pattern, handler) }
-func (a *App) Post(pattern string, handler HandlerFunc) { a.AddHandler(MethodPost, pattern, handler) }
+func (a *App) Get(pattern string, handler HandlerFunc)  { a.AddHandler(http.MethodGet, pattern, handler) }
+func (a *App) Post(pattern string, handler HandlerFunc) { a.AddHandler(http.MethodPost, pattern, handler) }

@@ -1,11 +1,11 @@
 package main
 
 import (
+	"github.com/cbroglie/mustache"
 	"log"
 	"my-budget/app"
 	"my-budget/database/orm"
 	"time"
-	"github.com/cbroglie/mustache"
 )
 
 type TransactionSlice []orm.Transaction
@@ -22,10 +22,9 @@ func (h HomePage) Binding() interface{} {
 		orm.GetTransactionsInDateRangeParams{PostingDate: startDate,
 			PostingDate_2: endDate,
 		})
+
 	if err != nil {
 		log.Println("Error getting pending transactions:", err)
-	} else {
-		log.Println("Pending transactions:", pending_transactions)
 	}
 
 	return map[string]TransactionSlice{"UnprocessedTransactions": pending_transactions}

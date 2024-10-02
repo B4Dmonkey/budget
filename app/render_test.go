@@ -80,7 +80,7 @@ func TestRender(t *testing.T) {
 	for _, test := range tests {
 		req, _ := http.NewRequest(test.method, test.uri, nil)
 		w := httptest.NewRecorder()
-		app.mux.ServeHTTP(w, req)
+		app.Mux.ServeHTTP(w, req)
 		assert.Equal(t, test.code, w.Code, test.description)
 		assert.Contains(t, w.Body.String(), test.expected, test.description)
 	}

@@ -1,18 +1,17 @@
 package main
 
 import (
-	"context"
+	// "context"
 	"embed"
 	"errors"
 	"my-budget/app"
 	"my-budget/database/orm"
 
-	// "io/fs"
 	"log"
-	"os"
-	"os/signal"
-	"sync"
-	"syscall"
+	// "os"
+	// "os/signal"
+	// "sync"
+	// "syscall"
 )
 
 // //go:embed public/*
@@ -21,22 +20,22 @@ import (
 //go:embed views/*
 var viewsDir embed.FS
 
-func main2() {
-	ctx, cancel := context.WithCancel(context.Background())
-	env := NewEnv()
-	var wg sync.WaitGroup
-	wg.Add(1)
-	app := CreateApp(ctx, env)
-	go app.Start(&wg)
+// func main2() {
+// 	ctx, cancel := context.WithCancel(context.Background())
+// 	env := NewEnv()
+// 	var wg sync.WaitGroup
+// 	wg.Add(1)
+// 	app := CreateApp(ctx, env)
+// 	go app.Start(&wg)
 
-	signalCh := make(chan os.Signal, 1)
-	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
+// 	signalCh := make(chan os.Signal, 1)
+// 	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
 
-	<-signalCh
-	cancel()
-	wg.Wait()
-	log.Println("HTTP server stopped")
-}
+// 	<-signalCh
+// 	cancel()
+// 	wg.Wait()
+// 	log.Println("HTTP server stopped")
+// }
 
 func New() (*app.App, error) {
 	if err := CreateDatabase(); err != nil {
@@ -47,8 +46,8 @@ func New() (*app.App, error) {
 		app.WithDbQueries(orm.New(conn)),
 	)
 
-	app.Get("/", root2)
-	app.Post("/upload", upload2)
+	app.Get("/", root)
+	app.Post("/upload", upload)
 
 	return app, nil
 }

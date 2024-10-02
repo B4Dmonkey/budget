@@ -9,8 +9,8 @@ type AppConfigFunc func(*AppConfig)
 type Queries interface{}
 
 type AppConfig struct {
-	mux       *http.ServeMux
-	server    *http.Server
+	Mux       *http.ServeMux
+	Server    *http.Server
 	dbQueries interface{}
 }
 
@@ -20,7 +20,7 @@ type App struct {
 
 func defaultAppConfig() AppConfig {
 	return AppConfig{
-		mux: http.NewServeMux(),
+		Mux: http.NewServeMux(),
 	}
 }
 
@@ -43,7 +43,7 @@ func New(overrides ...AppConfigFunc) *App {
 func (a *App) AddHandler(method string, path string, handler HandlerFunc) {
 	// Todo: add defensive coding to restrict method and check pattern
 	pattern := method + " " + path
-	a.mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
+	a.Mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 		ctx := Context{
 			Req: r,
 			Res: w,
@@ -54,11 +54,11 @@ func (a *App) AddHandler(method string, path string, handler HandlerFunc) {
 }
 
 func (a *App) Listen(addr string) error {
-	a.server = &http.Server{
+	a.Server = &http.Server{
 		Addr:    addr,
-		Handler: a.mux,
+		Handler: a.Mux,
 	}
-	return a.server.ListenAndServe()
+	return a.Server.ListenAndServe()
 }
 
 func (a *App) Get(pattern string, handler HandlerFunc)  { a.AddHandler(http.MethodGet, pattern, handler) }

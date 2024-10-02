@@ -12,7 +12,7 @@ func TestNewApp(t *testing.T) {
 	app := New()
 
 	assert.NotNil(t, app, "app should not be nil")
-	assert.NotNil(t, app.mux, "app.mux should not be nil")
+	assert.NotNil(t, app.Mux, "app.mux should not be nil")
 }
 
 func TestAppHTTPMethods(t *testing.T) {
@@ -58,7 +58,7 @@ func TestAppHTTPMethods(t *testing.T) {
 	for _, test := range tests {
 		req, _ := http.NewRequest(test.method, test.uri, nil)
 		w := httptest.NewRecorder()
-		app.mux.ServeHTTP(w, req)
+		app.Mux.ServeHTTP(w, req)
 		assert.Equal(t, test.code, w.Code, test.description)
 	}
 }

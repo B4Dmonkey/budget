@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"context"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -16,10 +15,10 @@ func TestRoot(t *testing.T) {
 	mockEnv := new(MockEnvConfig)
 	mockEnv.On("IsDev").Return(true)
 	mockEnv.On("Addr").Return("test_address")
-	ctx := context.Background()
-	app := CreateApp(ctx, mockEnv)
-	app.InitializeServer()
-	ts := httptest.NewServer(app.mux)
+	// ctx := context.Background()
+	app, err := New()
+	assert.Nil(t, err, "Error creating app")
+	ts := httptest.NewServer(app.Mux)
 	defer ts.Close()
 
 	req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
@@ -32,10 +31,10 @@ func TestUpload(t *testing.T) {
 	mockEnv := new(MockEnvConfig)
 	mockEnv.On("IsDev").Return(true)
 	mockEnv.On("Addr").Return("test_address")
-	ctx := context.Background()
-	app := CreateApp(ctx, mockEnv)
-	app.InitializeServer()
-	ts := httptest.NewServer(app.mux)
+	// ctx := context.Background()
+	app, err := New()
+	assert.Nil(t, err, "Error creating app")
+	ts := httptest.NewServer(app.Mux)
 	defer ts.Close()
 
 	filePath := "/Users/appstack/Downloads/Chase Activity Sept 27.CSV"

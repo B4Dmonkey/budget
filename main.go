@@ -48,7 +48,7 @@ func New() (*app.App, error) {
 	)
 
 	app.Get("/", root2)
-	// app.Post("/upload", upload)
+	app.Post("/upload", upload2)
 
 	return app, nil
 }

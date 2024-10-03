@@ -2,12 +2,12 @@ package main
 
 import (
 	"log"
-	"my-budget/app"
-	"my-budget/database/orm"
-	"strconv"
 	"time"
 
 	"github.com/cbroglie/mustache"
+
+	"my-budget/app"
+	"my-budget/database/orm"
 )
 
 type TransactionViewModelSlice []TransactionViewModel
@@ -18,7 +18,7 @@ type HomePage struct {
 
 type TransactionViewModel struct {
 	Date        string
-	Amount      int64
+	Amount      string
 	Description string
 	Balance     string
 }
@@ -43,12 +43,12 @@ func (h HomePage) Binding() interface{} {
 		if balance == nil {
 			balanceStr = ""
 		} else {
-			balanceStr = strconv.FormatInt(balance.(int64), 10)
+			balanceStr = ConvertCurrencyIntToString(balance.(int64))
 		}
 
 		transactionsView = append(transactionsView, TransactionViewModel{
 			Date:        transaction.PostingDate.Format("2006-01-02"),
-			Amount:      transaction.Amount,
+			Amount:      ConvertCurrencyIntToString(transaction.Amount),
 			Description: transaction.Description,
 			Balance:     balanceStr,
 		})

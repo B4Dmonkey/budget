@@ -9,27 +9,25 @@ import (
 	"io"
 	"log"
 	"mime/multipart"
-	"my-budget/database/orm"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"my-budget/database/orm"
 )
 
-func SaveFileToDisk(header *multipart.FileHeader, file multipart.File) error {
-	// todo: check if the folder is there. Not important since this is for me
-	out, err := os.Create("uploads/" + header.Filename)
-	if err != nil {
-		return errors.New("Unable to create the file: " + err.Error())
-	}
-	defer out.Close()
+func ConvertCurrencyIntToString(amount int64) string {
+	return fmt.Sprintf("%.2f", float64(amount)/100)
+}
 
-	_, err = io.Copy(out, file)
-	if err != nil {
-		return errors.New("Error saving file: " + err.Error())
+func ConvertCurrencyStringToInt(amount string) (int64, error) {
+	if amount == "" {
+		log.Println("Empty amount returning nil")
+		return 0, errors.New("Received empty string in ConvertCurrencyStringToInt")
 	}
-
-	return nil
+	amount = strings.Replace(amount, ".", "", -1)
+	return strconv.ParseInt(amount, 10, 64)
 }
 
 func PersistDocumentMetaData(ctx context.Context, header *multipart.FileHeader, file multipart.File) (string, error) {
@@ -80,7 +78,7 @@ func PersistTransactions(ctx context.Context, documentID string, header *multipa
 			}
 		}
 
-		amount, err := strconv.ParseInt(strings.Replace(record[Amount], ".", "", -1), 10, 64)
+		amount, err := ConvertCurrencyStringToInt(record[Amount])
 		if err != nil {
 			log.Println("Error parsing amount:", err)
 			continue
@@ -90,7 +88,7 @@ func PersistTransactions(ctx context.Context, documentID string, header *multipa
 		if strings.TrimSpace(record[Balance]) == "" {
 			balance = sql.NullInt64{Valid: false}
 		} else {
-			parsed_balance, err := strconv.ParseInt(strings.Replace(record[Balance], ".", "", -1), 10, 64)
+			parsed_balance, err := ConvertCurrencyStringToInt(record[Balance])
 			if err != nil {
 				log.Println("Error parsing balance:", err)
 				continue
@@ -119,5 +117,21 @@ func PersistTransactions(ctx context.Context, documentID string, header *multipa
 	}
 	tx.Commit()
 	log.Println("Transactions created")
+	return nil
+}
+
+func SaveFileToDisk(header *multipart.FileHeader, file multipart.File) error {
+	// todo: check if the folder is there. Not important since this is for me
+	out, err := os.Create("uploads/" + header.Filename)
+	if err != nil {
+		return errors.New("Unable to create the file: " + err.Error())
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, file)
+	if err != nil {
+		return errors.New("Error saving file: " + err.Error())
+	}
+
 	return nil
 }

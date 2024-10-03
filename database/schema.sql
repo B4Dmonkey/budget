@@ -14,9 +14,9 @@ CREATE TABLE transactions (
     details TEXT NOT NULL,
     posting_date DATE NOT NULL,
     description TEXT NOT NULL,
-    amount Integer NOT NULL,
+    amount INTEGER NOT NULL,
     type VARCHAR(50) NOT NULL, -- e.g., "credit" or "debit"
-    balance Integer,
+    balance INTEGER,
     FOREIGN KEY (document_id) REFERENCES documents_meta (id)
   );
 CREATE TABLE categories (
@@ -25,7 +25,7 @@ CREATE TABLE categories (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     name VARCHAR(255) NOT NULL,
     income_or_expense TEXT CHECK (income_or_expense IN ('income', 'expense')) NOT NULL,
-    amount Integer NOT NULL
+    amount INTEGER NOT NULL
   );
 CREATE TABLE budget_items (
     id UUID PRIMARY KEY,
@@ -34,7 +34,7 @@ CREATE TABLE budget_items (
     transaction_date DATE NOT NULL,
     category_id UUID NOT NULL,
     description TEXT NOT NULL,
-    amount Integer NOT NULL,
+    amount INTEGER NOT NULL,
     FOREIGN KEY (category_id) REFERENCES categories (id)
   );
 -- Dbmate schema migrations

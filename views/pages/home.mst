@@ -15,6 +15,7 @@
       <input type="file" id="file" name="file">
       <button type="submit">Upload</button>
     </form>
+    {{#HasUnprocessedTransactions}}
     <h2>Unprocessed transactions</h2>
     <table>
       <thead>
@@ -35,6 +36,7 @@
           </tr>
         {{/UnprocessedTransactions}}
       </tbody>
+    {{/HasUnprocessedTransactions}}
   </main>
 </body>
 </html>

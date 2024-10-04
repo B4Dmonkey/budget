@@ -16,6 +16,11 @@ type HomePage struct {
 	ctx app.Context
 }
 
+type HomePageViewModel struct {
+	HasUnprocessedTransactions bool
+	UnprocessedTransactions     TransactionViewModelSlice
+}
+
 type TransactionViewModel struct {
 	Date        string
 	Amount      string
@@ -53,7 +58,10 @@ func (h HomePage) Binding() interface{} {
 			Balance:     balanceStr,
 		})
 	}
-	return map[string]TransactionViewModelSlice{"UnprocessedTransactions": transactionsView}
+	return HomePageViewModel{
+		HasUnprocessedTransactions: len(transactionsView) > 0,
+		UnprocessedTransactions:     transactionsView,
+	}
 }
 
 func (h HomePage) Template() (*mustache.Template, error) {

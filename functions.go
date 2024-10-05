@@ -33,6 +33,16 @@ func ConvertCurrencyStringToInt(amount string) (int64, error) {
 func PersistDocumentMetaData(ctx context.Context, header *multipart.FileHeader, file multipart.File) (string, error) {
 	db := orm.New(conn)
 
+	document_id, err := db.FindOneDocumentMeta(ctx, header.Filename)
+
+	if err != nil && err != sql.ErrNoRows {
+		return "", errors.New("Error checking for existing document: " + err.Error())
+	}
+
+	if document_id != "" {
+		return document_id, nil
+	}
+
 	document, err := db.CreateDocumentMeta(ctx, orm.CreateDocumentMetaParams{
 		Name:         header.Filename,
 		PersistedLoc: header.Filename,
@@ -69,14 +79,16 @@ func PersistTransactions(ctx context.Context, documentID string, header *multipa
 	log.Println("Looping through records...")
 	for {
 		record, err := reader.Read()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			if parseErr, ok := err.(*csv.ParseError); ok && parseErr.Err != csv.ErrFieldCount {
-				return err
-			}
+		if err != nil && err == io.EOF {
+			break
 		}
+    
+    if err != nil {
+      // ? Is this the best way to handle this ? I shouldn't run into this error
+      if parseErr, ok := err.(*csv.ParseError); ok && parseErr.Err != csv.ErrFieldCount {
+        return err
+      }
+    }
 
 		amount, err := ConvertCurrencyStringToInt(record[Amount])
 		if err != nil {

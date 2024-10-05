@@ -5,7 +5,6 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -13,29 +12,19 @@ import (
 )
 
 func TestRoot(t *testing.T) {
-	mockEnv := new(MockEnvConfig)
-	mockEnv.On("IsDev").Return(true)
-	mockEnv.On("Addr").Return("test_address")
-	// ctx := context.Background()
-	app, err := New()
-	assert.Nil(t, err, "Error creating app")
-	ts := httptest.NewServer(app.Mux)
+	ts := setupTestServer(t)
 	defer ts.Close()
 
 	req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
 	assert.Nil(t, err, "Error creating request")
 	client := &http.Client{}
-	_, err = client.Do(req)
+	result, err := client.Do(req)
 	assert.Nil(t, err, "Error performing request")
+	assert.Equal(t, http.StatusOK, result.StatusCode, "Incorrect status code")
 }
+
 func TestDocuments(t *testing.T) {
-	mockEnv := new(MockEnvConfig)
-	mockEnv.On("IsDev").Return(true)
-	mockEnv.On("Addr").Return("test_address")
-	// ctx := context.Background()
-	app, err := New()
-	assert.Nil(t, err, "Error creating app")
-	ts := httptest.NewServer(app.Mux)
+	ts := setupTestServer(t)
 	defer ts.Close()
 
 	filePath := "/Users/appstack/Downloads/Chase Activity Sept 27.CSV"
@@ -58,13 +47,13 @@ func TestDocuments(t *testing.T) {
 	writer.Close()
 
 	// Create a new HTTP request
-	req, err := http.NewRequest(http.MethodPost, ts.URL+"/upload", body)
+	req, err := http.NewRequest(http.MethodPost, ts.URL+"/documents", body)
 	assert.Nil(t, err, "Error creating request")
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	// Perform the request
 	client := &http.Client{}
-	_, err = client.Do(req)
+	result, err := client.Do(req)
 	assert.Nil(t, err, "Error performing request")
-	// todo: should finish this request
+	assert.Equal(t, http.StatusOK, result.StatusCode, "Incorrect status code")
 }

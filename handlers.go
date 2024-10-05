@@ -2,8 +2,9 @@ package main
 
 import (
 	"log"
-	"my-budget/app"
 	"net/http"
+
+	"my-budget/app"
 )
 
 func root(ctx app.Context) error {
@@ -21,14 +22,12 @@ func documents(ctx app.Context) error {
 	}
 	defer file.Close()
 
-	// * save the file to disk
 	if err := SaveFileToDisk(header, file); err != nil {
 		log.Println("Error saving file to upload dir:", err)
 		return err
 	}
 	log.Println("File saved to disk")
 
-	// * save the location to the database
 	documentID, err := PersistDocumentMetaData(ctx.Req.Context(), header, file)
 	if err != nil {
 		log.Println("Error saving document metadata:", err)
@@ -36,18 +35,11 @@ func documents(ctx app.Context) error {
 	}
 	log.Println("Document metadata saved")
 
-	// * go through the db and create or update the records
 	if err := PersistTransactions(ctx.Req.Context(), documentID, header, file); err != nil {
 		log.Println("Error saving document metadata:", err)
 		return err
 	}
 	log.Println("Transactions saved")
-
-	// * respond with the values
-	// Log the file name
-	log.Printf("Uploaded file: %s", header.Filename)
-
-	// You can add further processing of the file here
 
 	ctx.Res.WriteHeader(http.StatusOK)
 	if _, err := ctx.Res.Write([]byte("File uploaded successfully")); err != nil {

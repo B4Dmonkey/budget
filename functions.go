@@ -17,17 +17,99 @@ import (
 	"my-budget/database/orm"
 )
 
-func ConvertCurrencyIntToString(amount int64) string {
-	return fmt.Sprintf("%.2f", float64(amount)/100)
+func ConvertCurrencyIntToString(amount int64) string { return fmt.Sprintf("%.2f", float64(amount)/100) }
+
+func ConvertCurrencyStringToInt64(amount string) (int64, error) {
+	return strconv.ParseInt(strings.Replace(strings.TrimSpace(amount), ".", "", -1), 10, 64)
 }
 
-func ConvertCurrencyStringToInt(amount string) (int64, error) {
+func ConvertCurrencyStringToNullInt64(amount string) sql.NullInt64 {
+	amount = strings.TrimSpace(amount)
 	if amount == "" {
-		log.Println("Empty amount returning nil")
-		return 0, errors.New("Received empty string in ConvertCurrencyStringToInt")
+		return sql.NullInt64{Valid: false}
 	}
-	amount = strings.Replace(amount, ".", "", -1)
-	return strconv.ParseInt(amount, 10, 64)
+
+	int64_amount, err := ConvertCurrencyStringToInt64(amount)
+
+	if err != nil {
+		// Todo: I should check what errors this might be and handle them
+		log.Println("Error converting currency string to int:", err)
+	}
+
+	return sql.NullInt64{
+		Int64: int64_amount,
+		Valid: err == nil,
+	}
+}
+
+func ProcessTransactions(db orm.Querier, ctx context.Context, header *multipart.FileHeader, file io.Reader) error {
+	log.Println("Processing transactions")
+	document_id, err := db.FindOneDocumentMeta(ctx, header.Filename)
+
+	if err != nil && err != sql.ErrNoRows {
+		return errors.New("Error checking for existing document: " + err.Error())
+	}
+
+	if document_id != "" {
+		log.Println("Document already exists")
+		// 	return ProcessNewTransactions(ctx, document_id, file)
+	} else {
+		log.Println("Creating new document")
+		document, err := db.CreateDocumentMeta(ctx, orm.CreateDocumentMetaParams{
+			Name:         header.Filename,
+			PersistedLoc: header.Filename,
+		})
+
+		if err != nil {
+			return errors.New("Error creating document record: " + err.Error())
+		}
+		reader := csv.NewReader(file)
+
+		if _, err := reader.Read(); err != nil {
+			return fmt.Errorf("error skipping headers: %v", err)
+		}
+
+		log.Println("Document created:", document.ID)
+
+		for {
+			record, err := reader.Read()
+			if err != nil && err == io.EOF {
+				break
+			}
+			if parseErr, ok := err.(*csv.ParseError); ok && parseErr.Err != csv.ErrFieldCount {
+				return err
+			}
+
+			amount, err := ConvertCurrencyStringToInt64(record[Amount])
+			if err != nil {
+				log.Println("Error parsing amount:", err)
+				continue
+			}
+
+			balance := ConvertCurrencyStringToNullInt64(record[Balance])
+
+			postingDate, err := time.Parse("01/02/2006", record[PostingDate])
+			if err != nil {
+				log.Println("Error parsing posting date:", err)
+				continue
+			}
+
+      if err := db.CreateTransaction(ctx, orm.CreateTransactionParams{
+        DocumentID:  document.ID,
+        Details:     record[Details],
+        PostingDate: postingDate,
+        Description: record[Description],
+        Amount:      amount,
+        Type:        record[Type],
+        Balance:     balance,
+      }); err != nil {
+        log.Println("Error creating transaction record:", err)
+        continue
+      }
+		}
+	}
+
+	return nil
 }
 
 func PersistDocumentMetaData(ctx context.Context, header *multipart.FileHeader, file multipart.File) (string, error) {
@@ -57,6 +139,15 @@ func PersistDocumentMetaData(ctx context.Context, header *multipart.FileHeader, 
 	return document.ID, nil
 }
 
+/*
+* Get all transactions which are pending
+* loop through csv
+* check if the transaction match an elem in the array
+* if it does, update the transaction
+* if it doesn't, create a new transaction
+* end loop when i get to the end of pending transactions
+ */
+
 func PersistTransactions(ctx context.Context, documentID string, header *multipart.FileHeader, file multipart.File) error {
 	tx, err := conn.Begin()
 	if err != nil {
@@ -71,46 +162,61 @@ func PersistTransactions(ctx context.Context, documentID string, header *multipa
 		return err
 	}
 
+	pending_transactions, err := db.GetPendingTransactions(ctx, documentID)
+	if err != nil {
+		return err
+	}
+
+	log.Println("Pending transactions:", pending_transactions)
+
 	reader := csv.NewReader(file)
 
 	if _, err := reader.Read(); err != nil {
 		return fmt.Errorf("error skipping headers: %v", err)
 	}
+
 	log.Println("Looping through records...")
 	for {
 		record, err := reader.Read()
 		if err != nil && err == io.EOF {
 			break
 		}
-    
-    if err != nil {
-      // ? Is this the best way to handle this ? I shouldn't run into this error
-      if parseErr, ok := err.(*csv.ParseError); ok && parseErr.Err != csv.ErrFieldCount {
-        return err
-      }
-    }
 
-		amount, err := ConvertCurrencyStringToInt(record[Amount])
+		if parseErr, ok := err.(*csv.ParseError); ok && parseErr.Err != csv.ErrFieldCount {
+			return err
+		}
+
+		amount, err := ConvertCurrencyStringToInt64(record[Amount])
 		if err != nil {
 			log.Println("Error parsing amount:", err)
 			continue
 		}
 
-		var balance sql.NullInt64
-		if strings.TrimSpace(record[Balance]) == "" {
-			balance = sql.NullInt64{Valid: false}
-		} else {
-			parsed_balance, err := ConvertCurrencyStringToInt(record[Balance])
-			if err != nil {
-				log.Println("Error parsing balance:", err)
-				continue
-			}
-			balance = sql.NullInt64{Int64: parsed_balance, Valid: true}
-		}
+		balance := ConvertCurrencyStringToNullInt64(record[Balance])
 
 		postingDate, err := time.Parse("01/02/2006", record[PostingDate])
 		if err != nil {
 			log.Println("Error parsing posting date:", err)
+			continue
+		}
+
+		var isMatch bool
+		for _, transaction := range pending_transactions {
+			details_match := transaction.Details == record[Details]
+			postingDate_match := transaction.PostingDate == postingDate
+			description_match := transaction.Description == record[Description]
+			transactionType_match := transaction.Type == record[Type]
+			amount_match := transaction.Amount == amount
+			balance_match := transaction.Balance == balance
+
+			if details_match && postingDate_match && description_match && amount_match && transactionType_match && balance_match {
+				isMatch = true
+				break
+			}
+			isMatch = false
+		}
+
+		if isMatch {
 			continue
 		}
 

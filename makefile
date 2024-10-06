@@ -43,7 +43,7 @@ pheonix: nuke db
 	@echo "From the ashes the pheonix rises once again..."
 
 # Data base migrations
-db-build db: db-migration-up sql-quries 
+db-build db: db-migration-up sql-queries 
 
 new-migration:
 	@dbmate --migrations-dir=$(DB_MIGRATION_DIR) new $(name)
@@ -68,6 +68,6 @@ db-seed-database seed:
 # 	@echo "Cleaning up test database..."
 # 	@rm $(TEST_DB_SCHEMA_FILE) $(DB_DIR)/test.db
 
-sql-quries orm:
+sql-queries orm:
 	@sqlc generate
 	@echo "SQL queries generated."

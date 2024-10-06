@@ -13,6 +13,15 @@ INSERT INTO
 VALUES
   (UUID (), ?, ?, ?, ?, ?, ?, ?);
 
+-- name: GetPendingTransactions :many
+SELECT
+  *
+FROM
+  transactions
+WHERE
+  document_id = ?
+  AND balance IS NULL;
+
 -- name: GetTransactionsInDateRange :many
 SELECT
   *

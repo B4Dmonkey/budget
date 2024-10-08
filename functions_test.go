@@ -55,8 +55,18 @@ func generateTestCSVData() *bytes.Buffer {
 	// ToDo: This should be randomly generated
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
-	writer.Write([]string{"Details", "Posting Date", "Description", "Amount", "Type", "Balance", "Check or Slip #", ""})
-	writer.Write([]string{"", "01/01/2023", "Deposit", "100.50", "Credit", "100.50", ""})
+	headers := []string{"Details", "Posting Date", "Description", "Amount", "Type", "Balance", "Check or Slip #", ""}
+	row := []string{"DEBIT", "01/01/2023", "MTA*NYCT PAYGO NEW YORK NY                   09/23", "100.50", "DEBIT", "100.50", ""}
+	if err := writer.Write(headers); err != nil {
+		panic(err)
+	}
+	if err := writer.Write(row); err != nil {
+		panic(err)
+	}
+	writer.Flush() // Ensure all data is written to the buffer
+	if err := writer.Error(); err != nil {
+		panic(err)
+	}
 	return &buf
 }
 
@@ -120,5 +130,5 @@ func TestProcessNewTransactions(t *testing.T) {
 	// 	WillReturnRows(mock_document_row)
 
 	err := ProcessNewTransactions(mock_db, mock_ctx, header, mock_csv_data)
-	assert.Nil(t, err, "Expected an error")
+	assert.NoError(t, err, "Expected nil error")
 }

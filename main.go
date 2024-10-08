@@ -20,6 +20,16 @@ import (
 //go:embed views/*
 var viewsDir embed.FS
 
+const (
+	Details int = iota
+	PostingDate
+	Description
+	Amount
+	Type
+	Balance
+)
+
+
 // func main2() {
 // 	ctx, cancel := context.WithCancel(context.Background())
 // 	env := NewEnv()

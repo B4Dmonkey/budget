@@ -52,15 +52,11 @@ func TestConvertCurrencyStringToIntOrNil(t *testing.T) {
 }
 
 func generateTestCSVData() *bytes.Buffer {
+	// ToDo: This should be randomly generated
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
 	writer.Write([]string{"Details", "Posting Date", "Description", "Amount", "Type", "Balance", "Check or Slip #", ""})
 	writer.Write([]string{"", "01/01/2023", "Deposit", "100.50", "Credit", "100.50", ""})
-	// writer.Write([]string{"", "01/02/2023", "Withdrawal", "-50.25", "Debit", "50.25", ""})
-	// writer.Write([]string{"", "01/03/2023", "Deposit", "200.00", "Credit", "250.25", ""})
-	// writer.Write([]string{"", "01/04/2023", "Withdrawal", "-75.00", "Debit", "175.25", ""})
-	// writer.Write([]string{"", "01/05/2023", "Deposit", "150.75", "Credit", "326.00", ""})
-	writer.Flush()
 	return &buf
 }
 

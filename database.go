@@ -13,9 +13,9 @@ import (
 )
 
 var conn *sql.DB
-var connectOnce sync.Once
 
 func init() {
+	var connectOnce sync.Once
 	connectOnce.Do(func() {
 		sql.Register("sqlite3_extended", &sqlite.SQLiteDriver{
 			ConnectHook: func(conn *sqlite.SQLiteConn) error {

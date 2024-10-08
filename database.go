@@ -5,42 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
-	"time"
-
-	"github.com/google/uuid"
-	sqlite "github.com/mattn/go-sqlite3"
 )
 
 var conn *sql.DB
-
-func init() {
-	var connectOnce sync.Once
-	connectOnce.Do(func() {
-		sql.Register("sqlite3_extended", &sqlite.SQLiteDriver{
-			ConnectHook: func(conn *sqlite.SQLiteConn) error {
-
-				if err := conn.RegisterFunc("uuid", newUUID, false); err != nil {
-					return err
-				}
-
-				if err := conn.RegisterFunc("current_timestamp", currentTimestamp, false); err != nil {
-					return err
-				}
-
-				return nil
-			},
-		})
-	})
-}
-
-func newUUID() string {
-	return uuid.New().String()
-}
-
-func currentTimestamp() string {
-	return time.Now().Format("2006-01-02 15:04:05")
-}
 
 func CreateDatabase() error {
 	log.Println("Connecting to database...")

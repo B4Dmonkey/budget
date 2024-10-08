@@ -14,8 +14,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"my-budget/database/orm"
 )
+
+func currentTimestamp() string { return time.Now().Format("2006-01-02 15:04:05") }
+
+func newUUID() string { return uuid.New().String() }
 
 func ConvertCurrencyIntToString(amount int64) string { return fmt.Sprintf("%.2f", float64(amount)/100) }
 

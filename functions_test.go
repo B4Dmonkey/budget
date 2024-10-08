@@ -123,6 +123,6 @@ func TestProcessNewTransactions(t *testing.T) {
 	// 	WithArgs(header.Filename, mock_document_name).
 	// 	WillReturnRows(mock_document_row)
 
-	err := ProcessTransactions(mock_db, mock_ctx, header, mock_csv_data)
+	err := ProcessNewTransactions(mock_db, mock_ctx, header, mock_csv_data)
 	assert.Nil(t, err, "Expected an error")
 }

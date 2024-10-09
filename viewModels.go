@@ -14,12 +14,12 @@ type TransactionViewModelSlice []TransactionViewModel
 
 type HomePage struct {
 	ctx context.Context
-	q  *orm.Queries
+	q   *orm.Queries
 }
 
 type HomePageViewModel struct {
 	HasUnprocessedTransactions bool
-	UnprocessedTransactions     TransactionViewModelSlice
+	UnprocessedTransactions    TransactionViewModelSlice
 }
 
 type TransactionViewModel struct {
@@ -29,7 +29,7 @@ type TransactionViewModel struct {
 	Balance     string
 }
 
-func (h HomePage) Binding() interface{} {
+func (h HomePage) GetBinding() interface{} {
 	if h.q == nil {
 		panic("Binding called without setting queries")
 	}
@@ -67,7 +67,7 @@ func (h HomePage) Binding() interface{} {
 	}
 	return HomePageViewModel{
 		HasUnprocessedTransactions: len(transactionsView) > 0,
-		UnprocessedTransactions:     transactionsView,
+		UnprocessedTransactions:    transactionsView,
 	}
 }
 

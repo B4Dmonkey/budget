@@ -57,7 +57,7 @@ const (
 )
 
 type View interface {
-	Binding() interface{}
+	GetBinding() interface{}
 	Template() (*mustache.Template, error)
 }
 
@@ -122,18 +122,19 @@ func New() *App {
 	return &app
 }
 
-func (a *App) Render(view View) (string, error) {
-	if _, ok := view.(RenderOverridden); ok {
-		return view.(RenderOverridden).Render()
-	}
+// func (a *App) Render(view View) (string, error) {
+// ! The abastraction is too early
+// 	if _, ok := view.(RenderOverridden); ok {
+// 		return view.(RenderOverridden).Render()
+// 	}
 
-	template, err := view.Template()
-	if err != nil {
-		return "", err
-	}
-	viewBinding := view.Binding()
-	return template.Render(viewBinding)
-}
+// 	template, err := view.Template()
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	viewBinding := view.Binding()
+// 	return template.Render(viewBinding)
+// }
 
 func (a *App) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()

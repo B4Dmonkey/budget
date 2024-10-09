@@ -23,13 +23,18 @@ func (a *App) addHandlers() {
 
 func (a *App) root(w http.ResponseWriter, r *http.Request) {
 	homePage := HomePage{ctx: r.Context(), q: a.db_queries}
-	content, err := a.Render(homePage)
+	binding := homePage.GetBinding()
+	template, err := homePage.Template()
 	if err != nil {
 		log.Println("Error rendering template:", err)
 		http.Error(w, "Error rendering template", http.StatusInternalServerError)
 	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(content))
+	if err := template.FRender(w, binding); err != nil {
+		log.Println("Error rendering template:", err)
+		http.Error(w, "Error rendering template", http.StatusInternalServerError)
+	}
 }
 
 func (a *App) documents(w http.ResponseWriter, r *http.Request) {

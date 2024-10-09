@@ -59,4 +59,6 @@ func (a *App) documents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tx.Commit()
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte("File uploaded successfully"))
 }

@@ -55,5 +55,5 @@ func TestDocuments(t *testing.T) {
 	client := &http.Client{}
 	result, err := client.Do(req)
 	assert.Nil(t, err, "Error performing request")
-	assert.Equal(t, http.StatusOK, result.StatusCode, "Incorrect status code")
+	assert.Equal(t, http.StatusCreated, result.StatusCode, "Incorrect status code")
 }

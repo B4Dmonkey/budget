@@ -10,6 +10,15 @@ import (
 	"my-budget/database/orm"
 )
 
+type View interface {
+	GetBinding() interface{}
+	Template() (*mustache.Template, error)
+}
+
+type RenderOverridden interface {
+	Render() (string, error)
+}
+
 type TransactionViewModelSlice []TransactionViewModel
 
 type HomePage struct {
@@ -78,3 +87,4 @@ func (h HomePage) Template() (*mustache.Template, error) {
 		return mustache.ParseString(string(template_file))
 	}
 }
+

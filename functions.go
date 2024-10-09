@@ -50,6 +50,18 @@ func ConvertCurrencyStringToNullInt64(amount string) sql.NullInt64 {
 
 func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipart.FileHeader, file io.Reader) error {
 	log.Println("Processing transactions")
+	if db == nil {
+		return errors.New("Database connection is nil")
+	}
+	if ctx == nil {
+		return errors.New("Context is nil")
+	}
+	if header == nil {
+		return errors.New("Header is nil")
+	}
+	if file == nil {
+		return errors.New("File is nil")
+	}
 	document_id, err := db.FindOneDocumentMeta(ctx, header.Filename)
 
 	if err != nil && err != sql.ErrNoRows {

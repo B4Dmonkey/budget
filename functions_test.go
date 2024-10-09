@@ -7,6 +7,7 @@ import (
 	"encoding/csv"
 	"mime/multipart"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -70,20 +71,33 @@ func TestConvertCurrencyStringToIntOrNil(t *testing.T) {
 }
 
 func TestGetTransactions(t *testing.T) {
+	mock_db := new(MockDB)
+	mock_ctx := context.Background()
+	start_date := time.Date(2024, time.September, 1, 0, 0, 0, 0, time.Local)
+	end_date := time.Date(2024, time.September, 30, 23, 59, 59, 999999999, time.Local)
+	
 	tests := map[string]struct {
 		db        orm.Querier
 		ctx       context.Context
 		expectErr bool
 	}{
-		"It fails when db is nil":  {db: nil, ctx: context.Background(), expectErr: true},
-		"It fails when ctx is nil": {db: new(MockDB), ctx: nil, expectErr: true},
+		"It fails when db is nil":            {db: nil, ctx: mock_ctx, expectErr: true},
+		"It fails when ctx is nil":           {db: mock_db, ctx: nil, expectErr: true},
+		"It returns a slice of Transactions": {db: mock_db, ctx: mock_ctx, expectErr: false},
 	}
+
+	mock_db.
+		On("GetTransactionsInDateRange", mock_ctx, orm.GetTransactionsInDateRangeParams{PostingDate: start_date, PostingDate_2: end_date}).
+		Return([]orm.Transaction{}, nil)
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			_, err := GetTransactions(tc.db, tc.ctx)
+			results, err := GetTransactions(tc.db, tc.ctx, start_date, end_date)
 			if tc.expectErr {
 				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, results) // ? technically not nil but yea empty list
 			}
 		})
 	}

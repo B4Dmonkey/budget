@@ -48,15 +48,18 @@ func ConvertCurrencyStringToNullInt64(amount string) sql.NullInt64 {
 	}
 }
 
-func GetTransactions(db orm.Querier, ctx context.Context) ([]orm.Transaction, error) {
+func GetTransactions(db orm.Querier, ctx context.Context, startDate time.Time, endDate time.Time) ([]orm.Transaction, error) {
 	if db == nil {
 		return nil, errors.New("Database connection is nil")
 	}
 	if ctx == nil {
 		return nil, errors.New("Context is nil")
 	}
-	
-	return nil, nil
+
+	return db.GetTransactionsInDateRange(
+		ctx,
+		orm.GetTransactionsInDateRangeParams{PostingDate: startDate, PostingDate_2: endDate},
+	)
 }
 
 func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipart.FileHeader, file io.Reader) error {

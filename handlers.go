@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/cbroglie/mustache"
 )
 
 func (a *App) addHandlers() {
@@ -56,9 +59,48 @@ func (a *App) documents(w http.ResponseWriter, r *http.Request) {
 	if err := ProcessNewTransactions(txdb, r.Context(), header, file); err != nil {
 		log.Println("Error processing transactions:", err)
 		http.Error(w, "Error reading file", http.StatusBadRequest)
+
+	}
+	tx.Commit()
+
+	// ?This should be programmatically determined
+	start_date := time.Date(2024, time.September, 1, 0, 0, 0, 0, time.Local)
+	end_date := time.Date(2024, time.September, 30, 23, 59, 59, 999999999, time.Local)
+
+	transactions, err := GetTransactions(a.db_queries, r.Context(), start_date, end_date)
+	if err != nil {
+		log.Println("Error getting transactions:", err)
+		http.Error(w, "Error getting transactions", http.StatusInternalServerError)
 	}
 
-	tx.Commit()
+	template_file, err := viewsDir.ReadFile("views/components/transactions.mst")
+	if err != nil {
+		log.Println("Error reading template file:", err)
+		http.Error(w, "Error reading template file", http.StatusInternalServerError)
+	}
+
+	template, err := mustache.ParseString(string(template_file))
+	var viewableTransactions []TransactionViewModel
+	for _, transaction := range transactions {
+		balance, _ := transaction.Balance.Value()
+		var balanceStr string
+		if balance == nil {
+			balanceStr = ""
+		} else {
+			balanceStr = ConvertCurrencyIntToString(balance.(int64))
+		}
+
+		viewableTransactions = append(viewableTransactions, TransactionViewModel{
+			Date:        transaction.PostingDate.Format("2006-01-02"),
+			Amount:      ConvertCurrencyIntToString(transaction.Amount),
+			Description: transaction.Description,
+			Balance:     balanceStr,
+		})
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("File uploaded successfully"))
+	if err := template.FRender(w, HomePageViewModel{HasUnprocessedTransactions: len(viewableTransactions) > 0, UnprocessedTransactions: viewableTransactions}); err != nil {
+		log.Println("Error rendering template:", err)
+		http.Error(w, "Error rendering template", http.StatusInternalServerError)
+	}
 }

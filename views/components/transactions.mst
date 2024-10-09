@@ -13,9 +13,9 @@
     {{#UnprocessedTransactions}}
     <tr>
       <td>{{Date}}</td>
-      <td>{{Amount}}</td>
+      <td>${{Amount}}</td>
       <td>{{Description}}</td>
-      <td>{{Balance}}</td>
+      <td>${{Balance}}</td>
     </tr>
     {{/UnprocessedTransactions}}
   </tbody>

@@ -76,12 +76,13 @@ func ConnectDatabase() (*sql.DB, error) {
 	var connection *sql.DB
 
 	log.Println("Connecting to database...")
+  var ok bool
 	var err error
-	DATABASE_LOC := os.Getenv("DATABASE_LOC")
+  var DATABASE_LOC string
 
-	if DATABASE_LOC == "" {
-		return nil, fmt.Errorf("DATABASE_LOC is not set")
-	}
+	if DATABASE_LOC, ok = os.LookupEnv("DATABASE_LOC"); !ok || DATABASE_LOC == "" {
+    return nil, fmt.Errorf("DATABASE_LOC is not set")
+  }
 
 	connection, err = sql.Open("sqlite3_extended", DATABASE_LOC)
 	if connection == nil || err != nil {

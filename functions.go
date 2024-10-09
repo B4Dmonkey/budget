@@ -48,6 +48,17 @@ func ConvertCurrencyStringToNullInt64(amount string) sql.NullInt64 {
 	}
 }
 
+func GetTransactions(db orm.Querier, ctx context.Context) ([]orm.Transaction, error) {
+	if db == nil {
+		return nil, errors.New("Database connection is nil")
+	}
+	if ctx == nil {
+		return nil, errors.New("Context is nil")
+	}
+	
+	return nil, nil
+}
+
 func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipart.FileHeader, file io.Reader) error {
 	log.Println("Processing transactions")
 	if db == nil {
@@ -130,7 +141,7 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 
 func SaveFileToDisk(header *multipart.FileHeader, file multipart.File) error {
 	// todo: check if the folder is there. Not important since this is for me
-	out, err := os.Create("uploads/" + header.Filename)
+	out, err := os.Create("DocumentUploads/" + header.Filename)
 	if err != nil {
 		return errors.New("Unable to create the file: " + err.Error())
 	}

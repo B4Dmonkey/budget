@@ -13,6 +13,25 @@ import (
 	"my-budget/database/orm"
 )
 
+func generateTestCSVData() *bytes.Buffer {
+	// ToDo: This should be randomly generated
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
+	headers := []string{"Details", "Posting Date", "Description", "Amount", "Type", "Balance", "Check or Slip #", ""}
+	row := []string{"DEBIT", "01/01/2023", "MTA*NYCT PAYGO NEW YORK NY                   09/23", "100.50", "DEBIT", "100.50", ""}
+	if err := writer.Write(headers); err != nil {
+		panic(err)
+	}
+	if err := writer.Write(row); err != nil {
+		panic(err)
+	}
+	writer.Flush() // Ensure all data is written to the buffer
+	if err := writer.Error(); err != nil {
+		panic(err)
+	}
+	return &buf
+}
+
 func TestConvertCurrencyIntToString(t *testing.T) {
 	tests := map[string]struct {
 		input    int64
@@ -50,26 +69,25 @@ func TestConvertCurrencyStringToIntOrNil(t *testing.T) {
 	}
 }
 
-func generateTestCSVData() *bytes.Buffer {
-	// ToDo: This should be randomly generated
-	var buf bytes.Buffer
-	writer := csv.NewWriter(&buf)
-	headers := []string{"Details", "Posting Date", "Description", "Amount", "Type", "Balance", "Check or Slip #", ""}
-	row := []string{"DEBIT", "01/01/2023", "MTA*NYCT PAYGO NEW YORK NY                   09/23", "100.50", "DEBIT", "100.50", ""}
-	if err := writer.Write(headers); err != nil {
-		panic(err)
+func TestGetTransactions(t *testing.T) {
+	tests := map[string]struct {
+		db        orm.Querier
+		ctx       context.Context
+		expectErr bool
+	}{
+		"It fails when db is nil":  {db: nil, ctx: context.Background(), expectErr: true},
+		"It fails when ctx is nil": {db: new(MockDB), ctx: nil, expectErr: true},
 	}
-	if err := writer.Write(row); err != nil {
-		panic(err)
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			_, err := GetTransactions(tc.db, tc.ctx)
+			if tc.expectErr {
+				assert.Error(t, err)
+			}
+		})
 	}
-	writer.Flush() // Ensure all data is written to the buffer
-	if err := writer.Error(); err != nil {
-		panic(err)
-	}
-	return &buf
 }
-
-
 
 func TestProcessNewTransactions(t *testing.T) {
 	mock_db := new(MockDB)

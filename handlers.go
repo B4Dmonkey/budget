@@ -12,8 +12,8 @@ func (a *App) addHandlers() {
 		path    string
 		handler http.HandlerFunc
 	}{
-		{method: http.MethodGet, path: "/", handler: a.root},
-		{method: http.MethodPost, path: "/documents", handler: a.documents},
+		{method: http.MethodGet, path: "/", handler: WithMiddleware(a.root, logger)},
+		{method: http.MethodPost, path: "/documents", handler: WithMiddleware(a.documents, logger)},
 	}
 
 	for _, h := range handlers {
@@ -22,7 +22,6 @@ func (a *App) addHandlers() {
 }
 
 func (a *App) root(w http.ResponseWriter, r *http.Request) {
-	log.Println("Root handler")
 	homePage := HomePage{ctx: r.Context(), q: a.db_queries}
 	content, err := a.Render(homePage)
 	if err != nil {
@@ -34,7 +33,6 @@ func (a *App) root(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) documents(w http.ResponseWriter, r *http.Request) {
-	log.Println("Documents handler")
 	file, header, err := r.FormFile("file")
 
 	if err != nil {

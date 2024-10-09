@@ -1,24 +1,21 @@
 package main
 
 import (
-	// "context"
+	"context"
 	"database/sql"
 	"embed"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"sync"
-	// "os"
-	// "os/signal"
-	// "sync"
-	// "syscall"
+	"syscall"
+	"time"
 
 	"github.com/cbroglie/mustache"
 	sqlite "github.com/mattn/go-sqlite3"
 
-	"my-budget/app"
 	"my-budget/database/orm"
 )
 
@@ -108,9 +105,9 @@ func New() *App {
 
 	mux := http.NewServeMux()
 	app := App{
-		db_conn: conn,
-    db_queries: orm.New(conn),
-		mux:     mux,
+		db_conn:    conn,
+		db_queries: orm.New(conn),
+		mux:        mux,
 		server: &http.Server{
 			Addr:    os.Getenv("DEVELOPMENT_PORT"),
 			Handler: mux,
@@ -122,21 +119,6 @@ func New() *App {
 	}
 	app.addHandlers()
 	return &app
-}
-
-func New2() (*app.App, error) {
-	if err := CreateDatabase(); err != nil {
-		return nil, errors.New("Unable to create the file: " + err.Error())
-	}
-
-	app := app.New(
-		app.WithDbQueries(orm.New(conn)),
-	)
-
-	// app.Get("/", root)
-	app.Post("/documents", documents)
-
-	return app, nil
 }
 
 func (a *App) Render(view View) (string, error) {
@@ -152,32 +134,43 @@ func (a *App) Render(view View) (string, error) {
 	return template.Render(viewBinding)
 }
 
-func main() {
-	// ctx, cancel := context.WithCancel(context.Background())
-	// env := NewEnv()
-	// var wg sync.WaitGroup
-	// wg.Add(1)
-	app := New()
-	app.server.ListenAndServe()
+func (a *App) Run(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
 
-	// if err := app.Listen(env.Addr()); err != nil {
-	// 	log.Fatalf("Failed to start server: %v", err)
-	// }
+	go func() {
+		log.Println("Initializing HTTP server...")
+		err := a.server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatalf("HTTP server error: %s\n", err)
+		}
+	}()
+
+	<-ctx.Done()
+	log.Println("Shutting down HTTP server gracefully...")
+	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelShutdown()
+
+	err := a.server.Shutdown(shutdownCtx)
+	if err != nil {
+		log.Printf("HTTP server shutdown error: %s\n", err)
+	}
 }
 
-// func main2() {
-// 	ctx, cancel := context.WithCancel(context.Background())
-// 	env := NewEnv()
-// 	var wg sync.WaitGroup
-// 	wg.Add(1)
-// 	app := CreateApp(ctx, env)
-// 	go app.Start(&wg)
+func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	var wg sync.WaitGroup
+	wg.Add(1)
+	app := New()
 
-// 	signalCh := make(chan os.Signal, 1)
-// 	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
+	go app.Run(ctx, &wg)
+	app.server.ListenAndServe()
 
-// 	<-signalCh
-// 	cancel()
-// 	wg.Wait()
-// 	log.Println("HTTP server stopped")
-// }
+	signalCh := make(chan os.Signal, 1)
+	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)
+
+	<-signalCh
+	cancel()
+	wg.Wait()
+	log.Println("HTTP server stopped")
+
+}

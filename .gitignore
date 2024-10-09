@@ -4,6 +4,7 @@
 database/data.db
 # * Directories
 .vscode/
+bin/
 database/orm/
 tmp/
 uploads/

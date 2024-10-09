@@ -1,19 +1,20 @@
 package main
 
 import (
+	"context"
 	"log"
 	"time"
 
 	"github.com/cbroglie/mustache"
 
-	"my-budget/app"
 	"my-budget/database/orm"
 )
 
 type TransactionViewModelSlice []TransactionViewModel
 
 type HomePage struct {
-	ctx app.Context
+	ctx context.Context
+	q  *orm.Queries
 }
 
 type HomePageViewModel struct {
@@ -29,10 +30,16 @@ type TransactionViewModel struct {
 }
 
 func (h HomePage) Binding() interface{} {
+	if h.q == nil {
+		panic("Binding called without setting queries")
+	}
+	if h.ctx == nil {
+		panic("Binding called without setting context")
+	}
 	start_date := time.Date(2024, time.September, 1, 0, 0, 0, 0, time.Local)
 	end_date := time.Date(2024, time.September, 30, 23, 59, 59, 999999999, time.Local)
-	pending_transactions, err := h.ctx.DB.(*orm.Queries).GetTransactionsInDateRange(
-		h.ctx.Req.Context(),
+	pending_transactions, err := h.q.GetTransactionsInDateRange(
+		h.ctx,
 		orm.GetTransactionsInDateRangeParams{PostingDate: start_date,
 			PostingDate_2: end_date,
 		})

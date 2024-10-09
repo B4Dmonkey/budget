@@ -5,7 +5,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
 	"my-budget/database/orm"
@@ -60,9 +59,8 @@ func setupTestServer(t *testing.T) *httptest.Server {
 	mockEnv.On("IsDev").Return(true)
 	mockEnv.On("Addr").Return(":80")
 	// ctx := context.Background()
-	app, err := New()
-	assert.Nil(t, err, "Error creating app")
-	// assert.Equal(t, "test_address", app.Server.Addr)
-	ts := httptest.NewServer(app.Mux)
+	app := New()
+	// assert.Equal(t, "test_address", app.server.Addr)
+	ts := httptest.NewServer(app.mux)
 	return ts
 }

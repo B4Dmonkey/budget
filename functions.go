@@ -10,6 +10,7 @@ import (
 	"log"
 	"mime/multipart"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -18,6 +19,8 @@ import (
 
 	"my-budget/database/orm"
 )
+
+const DocumentUploads = "DocumentUploads"
 
 func currentTimestamp() string { return time.Now().Format("2006-01-02 15:04:05") }
 
@@ -65,18 +68,64 @@ func GetTransactions(db orm.Querier, ctx context.Context, startDate time.Time, e
 func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipart.FileHeader, file io.Reader) error {
 	log.Println("Processing transactions")
 	if db == nil {
-		return errors.New("Database connection is nil")
+		return newValidationError("Database connection is nil")
 	}
 	if ctx == nil {
-		return errors.New("Context is nil")
+		return newValidationError("Context is nil")
 	}
 	if header == nil {
-		return errors.New("Header is nil")
+		return newValidationError("Header is nil")
 	}
 	if file == nil {
-		return errors.New("File is nil")
+		return newValidationError("File is nil")
 	}
-	document_id, err := db.FindOneDocumentMeta(ctx, header.Filename)
+	fileName := strings.ToLower(header.Filename)
+	if !strings.HasPrefix(fileName, "chase activity") {
+		return newValidationError(fmt.Sprintf("Filename '%s' does not start with 'chase activity'", header.Filename))
+	}
+
+	if err := SaveFileToDisk(header, file); err != nil {
+		return err
+	}
+
+	// ! This logic is not correct. Year is being assumed to be the current year instead of the year the file was created. That should be done client side
+	parts := strings.Split(fileName, "activity")
+	datePart := strings.TrimSpace(parts[1])
+	datePart = strings.Split(datePart, ".")[0]
+	datePart = strings.TrimSpace(datePart)
+
+	monthMap := map[string]string{
+		"sept": "Sep", // Handle "Sept" specifically
+	}
+
+	dateParts := strings.Split(datePart, " ")
+	if len(dateParts) != 2 {
+		return newParseError(fmt.Sprintf("Error parsing date from filename. Date part: %v", datePart))
+	}
+
+	month, day := dateParts[0], dateParts[1]
+	if abbr, ok := monthMap[month]; ok {
+		month = abbr
+	} else {
+		return errors.New("Error parsing month from filename")
+	}
+
+	datePart = month + " " + day
+
+	// Parse the extracted date
+	parsedDate, err := time.Parse("Jan 2", datePart)
+	if err != nil {
+		return errors.New("Error parsing date from filename: " + err.Error())
+	}
+
+	// Combine with the year from creationTime
+	publishing_date := time.Date(time.Now().Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, time.Local)
+	log.Println("Publishing date:", publishing_date)
+
+	document_id, err := db.FindOneDocumentMeta(ctx, orm.FindOneDocumentMetaParams{
+		Name:           header.Filename,
+		PublishingDate: sql.NullTime{Time: publishing_date, Valid: true},
+	})
 
 	if err != nil && err != sql.ErrNoRows {
 		return errors.New("Error checking for existing document: " + err.Error())
@@ -93,6 +142,15 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 		if err != nil {
 			return errors.New("Error creating document record: " + err.Error())
 		}
+
+		// Reset the cursor to the start of the file
+		if seeker, ok := file.(io.Seeker); ok {
+			_, err := seeker.Seek(0, 0) // Reset the cursor to the start of the file
+			if err != nil {
+				return fmt.Errorf("error seeking to beginning of file: %v", err)
+			}
+		}
+
 		reader := csv.NewReader(file)
 
 		if _, err := reader.Read(); err != nil {
@@ -142,9 +200,9 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 	return nil
 }
 
-func SaveFileToDisk(header *multipart.FileHeader, file multipart.File) error {
+func SaveFileToDisk(header *multipart.FileHeader, file io.Reader) error {
 	// todo: check if the folder is there. Not important since this is for me
-	out, err := os.Create("DocumentUploads/" + header.Filename)
+	out, err := os.Create(filepath.Join(DocumentUploads, header.Filename))
 	if err != nil {
 		return errors.New("Unable to create the file: " + err.Error())
 	}

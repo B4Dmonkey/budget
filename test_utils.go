@@ -35,13 +35,12 @@ func (m *MockDB) CreateDocumentMeta(ctx context.Context, arg orm.CreateDocumentM
 
 func (m *MockDB) CreateTransaction(ctx context.Context, arg orm.CreateTransactionParams) error {
 	return nil
-	// args := m.Called(ctx, arg)
-	// return args.Error(0)
 }
 
-func (m *MockDB) FindOneDocumentMeta(ctx context.Context, name string) (string, error) {
-	args := m.Called(ctx, name)
-	return args.String(0), args.Error(1)
+func (m *MockDB) FindOneDocumentMeta(ctx context.Context, args orm.FindOneDocumentMetaParams) (string, error) {
+	// args := m.Called(ctx, name)
+	// return args.String(0), args.Error(1)
+	return "", nil
 }
 
 func (m *MockDB) GetPendingTransactions(ctx context.Context, documentID interface{}) ([]orm.Transaction, error) {

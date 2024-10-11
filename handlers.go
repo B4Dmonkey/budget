@@ -59,7 +59,7 @@ func (a *App) documents(w http.ResponseWriter, r *http.Request) {
 	if err := ProcessNewTransactions(txdb, r.Context(), header, file); err != nil {
 		log.Println("Error processing transactions:", err)
 		http.Error(w, "Error reading file", http.StatusBadRequest)
-
+		return
 	}
 	tx.Commit()
 

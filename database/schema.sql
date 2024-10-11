@@ -5,7 +5,7 @@ CREATE TABLE documents_meta (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     name VARCHAR(255) NOT NULL,
     persisted_loc VARCHAR(255) NOT NULL
-  );
+  , publishing_date TIMESTAMP);
 CREATE TABLE transactions (
     id UUID PRIMARY KEY,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -41,4 +41,5 @@ CREATE TABLE budget_items (
 INSERT INTO "schema_migrations" (version) VALUES
   ('20240928014521'),
   ('20240928155747'),
-  ('20240929005504');
+  ('20240929005504'),
+  ('20241009192350');

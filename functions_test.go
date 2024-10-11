@@ -1,11 +1,12 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
-	"encoding/csv"
+	"fmt"
+	"io"
 	"mime/multipart"
+	"os"
 	"testing"
 	"time"
 
@@ -13,25 +14,6 @@ import (
 
 	"my-budget/database/orm"
 )
-
-func generateTestCSVData() *bytes.Buffer {
-	// ToDo: This should be randomly generated
-	var buf bytes.Buffer
-	writer := csv.NewWriter(&buf)
-	headers := []string{"Details", "Posting Date", "Description", "Amount", "Type", "Balance", "Check or Slip #", ""}
-	row := []string{"DEBIT", "01/01/2023", "MTA*NYCT PAYGO NEW YORK NY                   09/23", "100.50", "DEBIT", "100.50", ""}
-	if err := writer.Write(headers); err != nil {
-		panic(err)
-	}
-	if err := writer.Write(row); err != nil {
-		panic(err)
-	}
-	writer.Flush() // Ensure all data is written to the buffer
-	if err := writer.Error(); err != nil {
-		panic(err)
-	}
-	return &buf
-}
 
 func TestConvertCurrencyIntToString(t *testing.T) {
 	tests := map[string]struct {
@@ -75,7 +57,7 @@ func TestGetTransactions(t *testing.T) {
 	mock_ctx := context.Background()
 	start_date := time.Date(2024, time.September, 1, 0, 0, 0, 0, time.Local)
 	end_date := time.Date(2024, time.September, 30, 23, 59, 59, 999999999, time.Local)
-	
+
 	tests := map[string]struct {
 		db        orm.Querier
 		ctx       context.Context
@@ -106,11 +88,16 @@ func TestGetTransactions(t *testing.T) {
 func TestProcessNewTransactions(t *testing.T) {
 	mock_db := new(MockDB)
 	mock_ctx := context.Background()
-	mock_document_name := "test.csv"
+	mock_document_name := "Chase Activity Sept 27.CSV"
 	mock_document_id := "new-document-id"
 	header := &multipart.FileHeader{Filename: mock_document_name}
 
-	mock_csv_data := generateTestCSVData()
+	mock_csv_data, err := os.Open("testdata/Chase Activity Sept 27.CSV")
+	if err != nil {
+		t.Fatalf("failed to open test CSV file: %v", err)
+	}
+	defer mock_csv_data.Close()
+
 	mock_db.
 		On("FindOneDocumentMeta", mock_ctx, header.Filename).
 		Return("", sql.ErrNoRows)
@@ -120,18 +107,46 @@ func TestProcessNewTransactions(t *testing.T) {
 			PersistedLoc: header.Filename,
 		}).
 		Return(orm.DocumentsMetum{ID: mock_document_id}, nil)
-	// mock_db.("CreateTransaction", mock_ctx, orm.CreateTransactionParams{})
-	// mock.ExpectQuery(orm.FindOneDocumentMeta).
-	// 	WithArgs(header.Filename).
-	// 	WillReturnError(sql.ErrNoRows)
+	tests := map[string]struct {
+		db              orm.Querier
+		ctx             context.Context
+		header          *multipart.FileHeader
+		file            io.Reader
+		expectErr       bool
+		expectedErrType error
+	}{
+		"It fails when db is nil":     {db: nil, ctx: mock_ctx, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &ValidationError{}},
+		"It fails when ctx is nil":    {db: mock_db, ctx: nil, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &ValidationError{}},
+		"It fails when header is nil": {db: mock_db, ctx: mock_ctx, header: nil, file: mock_csv_data, expectErr: true, expectedErrType: &ValidationError{}},
+		"It fails when header filename is incorrect": {
+			db:              mock_db,
+			ctx:             mock_ctx,
+			header:          &multipart.FileHeader{Filename: "test.csv"},
+			file:            mock_csv_data,
+			expectErr:       true,
+			expectedErrType: &ValidationError{},
+		},
+		"It fails when file is nil": {db: mock_db, ctx: mock_ctx, header: header, file: nil, expectErr: true, expectedErrType: &ValidationError{}},
+		"It fails when extracting date part": {
+			db:              mock_db,
+			ctx:             mock_ctx,
+			header:          &multipart.FileHeader{Filename: "chase activity test.csv"},
+			file:            mock_csv_data,
+			expectErr:       true,
+			expectedErrType: &ParseError{},
+		},
+		"It does the thing": {db: mock_db, ctx: mock_ctx, header: header, file: mock_csv_data},
+	}
 
-	// mock_document_row := sqlmock.NewRows([]string{"id", "created_at", "updated_at", "name", "persisted_loc"}).
-	// 	AddRow("new-document-id", time.Now(), time.Now(), header.Filename, mock_document_name)
-
-	// mock.ExpectQuery(orm.CreateDocumentMeta).
-	// 	WithArgs(header.Filename, mock_document_name).
-	// 	WillReturnRows(mock_document_row)
-
-	err := ProcessNewTransactions(mock_db, mock_ctx, header, mock_csv_data)
-	assert.NoError(t, err, "Expected nil error")
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := ProcessNewTransactions(tc.db, tc.ctx, tc.header, tc.file)
+			if tc.expectErr {
+				assert.Error(t, err)
+				assert.IsType(t, tc.expectedErrType, err, fmt.Sprintf("Received Error: %v", err))
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }

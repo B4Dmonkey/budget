@@ -10,4 +10,5 @@ SELECT
 FROM
   documents_meta
 WHERE
-  NAME = ?;
+  NAME = ?
+  AND publishing_date = ?;

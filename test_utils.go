@@ -39,6 +39,7 @@ func (m *MockDB) GetTransactionsInDateRange(
 	arg orm.GetTransactionsInDateRangeParams,
 ) ([]orm.Transaction, error) {
 	args := m.Called(ctx, arg)
+	
 	return args.Get(0).([]orm.Transaction), args.Error(1)
 }
 
@@ -47,5 +48,6 @@ func setupTestServer(t *testing.T) *httptest.Server {
 	app := New()
 	// assert.Equal(t, "test_address", app.server.Addr)
 	ts := httptest.NewServer(app.mux)
+
 	return ts
 }

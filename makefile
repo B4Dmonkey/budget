@@ -17,7 +17,7 @@ endif
 # !Not ideal if working multiple people
 check:
 	@golangci-lint run
-
+	
 dev:
 	@~/go/bin/air
 

@@ -166,6 +166,7 @@ func (a *App) Run(ctx context.Context, wg *sync.WaitGroup) {
 
 	go func() {
 		log.Println("Initializing HTTP server...")
+
 		err := a.server.ListenAndServe()
 
 		if err != nil && err != http.ErrServerClosed {
@@ -175,6 +176,7 @@ func (a *App) Run(ctx context.Context, wg *sync.WaitGroup) {
 
 	<-ctx.Done()
 	log.Println("Shutting down HTTP server gracefully...")
+
 	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
 
 	defer cancelShutdown()

@@ -1,7 +1,9 @@
 linters:
   enable:
     - cyclop
+    - funlen
     - gocheckcompilerdirectives
+    - gocognit
     - goconst
     - gosec
     - lll

@@ -52,11 +52,11 @@ func ConvertCurrencyStringToNullInt64(amount string) sql.NullInt64 {
 }
 
 func GetTransactions(db orm.Querier, ctx context.Context, startDate time.Time, endDate time.Time) ([]orm.Transaction, error) {
-	if db == nil {
-		return nil, errors.New("Database connection is nil")
-	}
-	if ctx == nil {
-		return nil, errors.New("Context is nil")
+	verify := Verifier{}
+	verify.That(db != nil, "Database connection is nil")
+	verify.That(ctx != nil, "Context is nil")
+	if err := verify.Flush(); err != nil {
+		return nil, err
 	}
 
 	return db.GetTransactionsInDateRange(
@@ -75,7 +75,7 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 	if err := verify.Flush(); err != nil {
 		return err
 	}
-	
+
 	fileName := strings.ToLower(header.Filename)
 	if !strings.HasPrefix(fileName, "chase activity") {
 		return newVerificationError(fmt.Sprintf("Filename '%s' does not start with 'chase activity'", header.Filename))

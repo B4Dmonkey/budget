@@ -37,10 +37,10 @@ func (m *MockDB) GetPendingTransactions(ctx context.Context, documentID interfac
 func (m *MockDB) GetTransactionsInDateRange(
 	ctx context.Context,
 	arg orm.GetTransactionsInDateRangeParams,
-) ([]orm.Transaction, error) {
+) ([]orm.GetTransactionsInDateRangeRow, error) {
 	args := m.Called(ctx, arg)
 	
-	return args.Get(0).([]orm.Transaction), args.Error(1)
+	return args.Get(0).([]orm.GetTransactionsInDateRangeRow), args.Error(1)
 }
 
 func setupTestServer(t *testing.T) *httptest.Server {

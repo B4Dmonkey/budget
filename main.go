@@ -63,15 +63,12 @@ type App struct {
 	db_queries *orm.Queries
 }
 
-func ConnectDatabase() (*sql.DB, error) {
+func ConnectToDatabase() (*sql.DB, error) {
 	log.Println("Connecting to database...")
 
 	var connection *sql.DB
-
 	var ok bool
-
 	var err error
-
 	var DATABASE_LOC string
 
 	if DATABASE_LOC, ok = os.LookupEnv("DATABASE_LOC"); !ok || DATABASE_LOC == "" {
@@ -95,7 +92,7 @@ func ConnectDatabase() (*sql.DB, error) {
 func New() *App {
 	var errs []error
 
-	conn, err := ConnectDatabase()
+	conn, err := ConnectToDatabase()
 
 	if err != nil {
 		errs = append(errs, err)

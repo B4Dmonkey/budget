@@ -16,6 +16,7 @@ endif
 
 # !Not ideal if working multiple people
 check:
+	@sqlc vet
 	@golangci-lint run
 	
 dev:

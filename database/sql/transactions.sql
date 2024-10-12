@@ -23,12 +23,22 @@ WHERE
   AND balance IS NULL;
 
 -- name: GetTransactionsInDateRange :many
+-- name: GetTransactionsInDateRange :many
 SELECT
-  *
+  t.*,
+  d.name AS document_name,
+  d.publishing_date AS document_publishing_date
 FROM
-  transactions
+  transactions t
+  JOIN documents_meta d ON t.document_id = d.id
 WHERE
-  posting_date >= ?
-  AND posting_date <= ?
+  t.posting_date >= ?
+  AND t.posting_date <= ?
+  AND d.publishing_date = (
+    SELECT
+      MAX(publishing_date)
+    FROM
+      documents_meta
+  )
 ORDER BY
-  posting_date DESC;
+  t.posting_date DESC;

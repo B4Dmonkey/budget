@@ -56,7 +56,7 @@ func GetTransactions(
 	ctx context.Context,
 	startDate time.Time,
 	endDate time.Time,
-) ([]orm.Transaction, error) {
+) ([]orm.GetTransactionsInDateRangeRow, error) {
 	verify := Verifier{}
 	verify.That(db != nil, "Database connection is nil")
 	verify.That(ctx != nil, "Context is nil")

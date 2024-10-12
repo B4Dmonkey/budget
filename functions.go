@@ -78,7 +78,7 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 
 	fileName := strings.ToLower(header.Filename)
 	if !strings.HasPrefix(fileName, "chase activity") {
-		return newVerificationError(fmt.Sprintf("Filename '%s' does not start with 'chase activity'", header.Filename))
+		return &VerificationError{Message: fmt.Sprintf("Filename '%s' does not start with 'chase activity'", header.Filename)}
 	}
 
 	if err := SaveFileToDisk(header, file); err != nil {

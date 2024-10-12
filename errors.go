@@ -31,10 +31,7 @@ func (v *Verifier) Flush() error {
 type VerificationError struct{ Message string }
 
 // Implement the Error interface for the ValidationError type
-func (e *VerificationError) Error() string { return e.Message }
-
-// newVerificationError creates a new ValidationError with the given message
-func newVerificationError(message string) error { return &VerificationError{Message: message} }
+func (e VerificationError) Error() string { return e.Message }
 
 // ParseError is an error type that represents an error that occurred when parsing data
 type ParseError struct{ Message string }

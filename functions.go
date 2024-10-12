@@ -51,10 +51,16 @@ func ConvertCurrencyStringToNullInt64(amount string) sql.NullInt64 {
 	}
 }
 
-func GetTransactions(db orm.Querier, ctx context.Context, startDate time.Time, endDate time.Time) ([]orm.Transaction, error) {
+func GetTransactions(
+	db orm.Querier,
+	ctx context.Context,
+	startDate time.Time,
+	endDate time.Time,
+) ([]orm.Transaction, error) {
 	verify := Verifier{}
 	verify.That(db != nil, "Database connection is nil")
 	verify.That(ctx != nil, "Context is nil")
+
 	if err := verify.Flush(); err != nil {
 		return nil, err
 	}
@@ -67,11 +73,14 @@ func GetTransactions(db orm.Querier, ctx context.Context, startDate time.Time, e
 
 func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipart.FileHeader, file io.Reader) error {
 	log.Println("Processing transactions")
+
 	verify := Verifier{}
+
 	verify.That(db != nil, "Database connection is nil")
 	verify.That(ctx != nil, "Context is nil")
 	verify.That(header != nil, "Header is nil")
 	verify.That(file != nil, "File is nil")
+
 	if err := verify.Flush(); err != nil {
 		return err
 	}
@@ -85,7 +94,9 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 		return err
 	}
 
-	// ! This logic is not correct. Year is being assumed to be the current year instead of the year the file was created. That should be done client side
+	// ! This logic is not correct. 
+	// ! Year is being assumed to be the current year instead of the year the file was created. 
+	// ! That should be done client side
 	parts := strings.Split(fileName, "activity")
 	datePart := strings.TrimSpace(parts[1])
 	datePart = strings.Split(datePart, ".")[0]
@@ -131,6 +142,7 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 	//todo: maybe send message for duplicate documents
 	if document_id == "" {
 		log.Println("Creating new document")
+		
 		document, err := db.CreateDocumentMeta(ctx, orm.CreateDocumentMetaParams{
 			Name:         header.Filename,
 			PersistedLoc: header.Filename,
@@ -161,6 +173,7 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 			if err != nil && err == io.EOF {
 				break
 			}
+
 			if parseErr, ok := err.(*csv.ParseError); ok && parseErr.Err != csv.ErrFieldCount {
 				return err
 			}

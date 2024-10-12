@@ -69,7 +69,11 @@ func TestGetTransactions(t *testing.T) {
 	}
 
 	mock_db.
-		On("GetTransactionsInDateRange", mock_ctx, orm.GetTransactionsInDateRangeParams{PostingDate: start_date, PostingDate_2: end_date}).
+		On(
+			"GetTransactionsInDateRange",
+			mock_ctx,
+			orm.GetTransactionsInDateRangeParams{PostingDate: start_date, PostingDate_2: end_date},
+		).
 		Return([]orm.Transaction{}, nil)
 
 	for name, tc := range tests {
@@ -115,9 +119,15 @@ func TestProcessNewTransactions(t *testing.T) {
 		expectErr       bool
 		expectedErrType error
 	}{
-		"It fails when db is nil":     {db: nil, ctx: mock_ctx, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{}},
-		"It fails when ctx is nil":    {db: mock_db, ctx: nil, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{}},
-		"It fails when header is nil": {db: mock_db, ctx: mock_ctx, header: nil, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{}},
+		"It fails when db is nil": {
+			db: nil, ctx: mock_ctx, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
+		},
+		"It fails when ctx is nil": {
+			db: mock_db, ctx: nil, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
+		},
+		"It fails when header is nil": {
+			db: mock_db, ctx: mock_ctx, header: nil, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
+		},
 		"It fails when header filename is incorrect": {
 			db:              mock_db,
 			ctx:             mock_ctx,
@@ -126,7 +136,9 @@ func TestProcessNewTransactions(t *testing.T) {
 			expectErr:       true,
 			expectedErrType: &VerificationError{},
 		},
-		"It fails when file is nil": {db: mock_db, ctx: mock_ctx, header: header, file: nil, expectErr: true, expectedErrType: &VerificationError{}},
+		"It fails when file is nil": {
+			db: mock_db, ctx: mock_ctx, header: header, file: nil, expectErr: true, expectedErrType: &VerificationError{},
+		},
 		"It fails when extracting date part": {
 			db:              mock_db,
 			ctx:             mock_ctx,

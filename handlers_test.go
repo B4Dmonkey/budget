@@ -44,6 +44,7 @@ func TestDocuments(t *testing.T) {
 	if _, err := io.Copy(part, file); err != nil {
 		t.Fatal(err)
 	}
+
 	writer.Close()
 
 	// Create a new HTTP request

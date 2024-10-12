@@ -42,6 +42,7 @@ func (h HomePage) GetBinding() interface{} {
 	if h.q == nil {
 		panic("Binding called without setting queries")
 	}
+
 	if h.ctx == nil {
 		panic("Binding called without setting context")
 	}
@@ -58,9 +59,11 @@ func (h HomePage) GetBinding() interface{} {
 	}
 
 	var transactionsView TransactionViewModelSlice
+
 	for _, transaction := range pending_transactions {
-		balance, _ := transaction.Balance.Value()
 		var balanceStr string
+		balance, _ := transaction.Balance.Value()
+
 		if balance == nil {
 			balanceStr = ""
 		} else {
@@ -87,4 +90,3 @@ func (h HomePage) Template() (*mustache.Template, error) {
 		return mustache.ParseString(string(template_file))
 	}
 }
-

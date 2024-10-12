@@ -9,6 +9,7 @@ import (
 
 	"my-budget/database/orm"
 )
+
 type MockDB struct {
 	mock.Mock
 }
@@ -33,7 +34,10 @@ func (m *MockDB) GetPendingTransactions(ctx context.Context, documentID interfac
 	return args.Get(0).([]orm.Transaction), args.Error(1)
 }
 
-func (m *MockDB) GetTransactionsInDateRange(ctx context.Context, arg orm.GetTransactionsInDateRangeParams) ([]orm.Transaction, error) {
+func (m *MockDB) GetTransactionsInDateRange(
+	ctx context.Context,
+	arg orm.GetTransactionsInDateRangeParams,
+) ([]orm.Transaction, error) {
 	args := m.Called(ctx, arg)
 	return args.Get(0).([]orm.Transaction), args.Error(1)
 }

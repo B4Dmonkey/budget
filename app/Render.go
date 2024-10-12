@@ -20,6 +20,8 @@ func Render(view View) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	viewBinding := view.Binding()
+
 	return template.Render(viewBinding)
 }

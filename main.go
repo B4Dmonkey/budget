@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,11 +21,11 @@ import (
 
 func init() {
 	var connectOnce sync.Once
+
 	log.Println("Extending sqlite3 driver...")
 	connectOnce.Do(func() {
 		sql.Register("sqlite3_extended", &sqlite.SQLiteDriver{
 			ConnectHook: func(conn *sqlite.SQLiteConn) error {
-
 				if err := conn.RegisterFunc("uuid", newUUID, false); err != nil {
 					return err
 				}
@@ -63,15 +64,18 @@ type App struct {
 }
 
 func ConnectDatabase() (*sql.DB, error) {
+	log.Println("Connecting to database...")
+
 	var connection *sql.DB
 
-	log.Println("Connecting to database...")
 	var ok bool
+
 	var err error
+
 	var DATABASE_LOC string
 
 	if DATABASE_LOC, ok = os.LookupEnv("DATABASE_LOC"); !ok || DATABASE_LOC == "" {
-		return nil, fmt.Errorf("DATABASE_LOC is not set")
+		return nil, errors.New("DATABASE_LOC is not set")
 	}
 
 	connection, err = sql.Open("sqlite3_extended", DATABASE_LOC)
@@ -84,12 +88,15 @@ func ConnectDatabase() (*sql.DB, error) {
 	}
 
 	log.Println("Database connected successfully")
+
 	return connection, nil
 }
 
 func New() *App {
 	var errs []error
+
 	conn, err := ConnectDatabase()
+
 	if err != nil {
 		errs = append(errs, err)
 	}
@@ -108,6 +115,7 @@ func New() *App {
 	if len(errs) > 0 {
 		log.Fatalf("Failed to create app: %v", errs)
 	}
+
 	app.addHandlers()
 	return &app
 }
@@ -159,6 +167,7 @@ func (a *App) Run(ctx context.Context, wg *sync.WaitGroup) {
 	go func() {
 		log.Println("Initializing HTTP server...")
 		err := a.server.ListenAndServe()
+
 		if err != nil && err != http.ErrServerClosed {
 			log.Fatalf("HTTP server error: %s\n", err)
 		}
@@ -167,6 +176,7 @@ func (a *App) Run(ctx context.Context, wg *sync.WaitGroup) {
 	<-ctx.Done()
 	log.Println("Shutting down HTTP server gracefully...")
 	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
+
 	defer cancelShutdown()
 
 	err := a.server.Shutdown(shutdownCtx)
@@ -177,7 +187,9 @@ func (a *App) Run(ctx context.Context, wg *sync.WaitGroup) {
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
+
 	var wg sync.WaitGroup
+
 	wg.Add(1)
 	app := New()
 
@@ -191,5 +203,4 @@ func main() {
 	cancel()
 	wg.Wait()
 	log.Println("HTTP server stopped")
-
 }

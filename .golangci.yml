@@ -1,0 +1,13 @@
+linters:
+  enable:
+    - cyclop
+    - gocheckcompilerdirectives
+    - goconst
+    - gosec
+    - lll
+    - nestif
+    - perfsprint
+    - usestdlibvars
+    - wastedassign
+    - whitespace
+    - wsl

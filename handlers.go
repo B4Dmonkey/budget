@@ -28,12 +28,14 @@ func (a *App) root(w http.ResponseWriter, r *http.Request) {
 	homePage := HomePage{ctx: r.Context(), q: a.db_queries}
 	binding := homePage.GetBinding()
 	template, err := homePage.Template()
+
 	if err != nil {
 		log.Println("Error rendering template:", err)
 		http.Error(w, "Error rendering template", http.StatusInternalServerError)
 	}
 
 	w.WriteHeader(http.StatusOK)
+
 	if err := template.FRender(w, binding); err != nil {
 		log.Println("Error rendering template:", err)
 		http.Error(w, "Error rendering template", http.StatusInternalServerError)
@@ -47,24 +49,28 @@ func (a *App) documents(w http.ResponseWriter, r *http.Request) {
 		log.Println("Error reading file:", err)
 		http.Error(w, "Error reading file", http.StatusBadRequest)
 	}
+
 	defer file.Close()
 
 	tx, err := a.db_conn.Begin()
 	if err != nil {
 		http.Error(w, "Error reading file", http.StatusBadRequest)
 	}
+
 	defer tx.Rollback()
 	txdb := a.db_queries.WithTx(tx)
 
 	if err := ProcessNewTransactions(txdb, r.Context(), header, file); err != nil {
 		log.Println("Error processing transactions:", err)
 		http.Error(w, "Error reading file", http.StatusBadRequest)
+
 		return
 	}
 
 	if err := tx.Commit(); err != nil {
 		log.Println("Error committing transaction:", err)
 		http.Error(w, "Error reading file", http.StatusBadRequest)
+
 		return
 	}
 
@@ -85,10 +91,14 @@ func (a *App) documents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	template, _ := mustache.ParseString(string(template_file))
+
 	var viewableTransactions []TransactionViewModel
+
 	for _, transaction := range transactions {
 		balance, _ := transaction.Balance.Value()
+
 		var balanceStr string
+
 		if balance == nil {
 			balanceStr = ""
 		} else {
@@ -104,7 +114,13 @@ func (a *App) documents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	if err := template.FRender(w, HomePageViewModel{HasUnprocessedTransactions: len(viewableTransactions) > 0, UnprocessedTransactions: viewableTransactions}); err != nil {
+
+	if err := template.FRender(
+		w,
+		HomePageViewModel{
+			HasUnprocessedTransactions: len(viewableTransactions) > 0,
+			UnprocessedTransactions:    viewableTransactions,
+		}); err != nil {
 		log.Println("Error rendering template:", err)
 		http.Error(w, "Error rendering template", http.StatusInternalServerError)
 	}

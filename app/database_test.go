@@ -21,6 +21,7 @@ func (m *MockQueries) GetDatum() string {
 func TestDatabase(t *testing.T) {
 	db, _, err := sqlmock.New()
 	assert.Nil(t, err, "Error connecting to database")
+	
 	query := NewMockQueries(db)
 
 	app := New(

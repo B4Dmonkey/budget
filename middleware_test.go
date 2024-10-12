@@ -19,7 +19,7 @@ func TestWithMiddleware(t *testing.T) {
 		}
 	}
 	wrappedHandler := WithMiddleware(sampleHandler, sampleMiddleware)
-	req, err := http.NewRequest("GET", "/test", nil)
+	req, err := http.NewRequest(http.MethodGet, "/test", nil)
 	assert.Nil(t, err, "Error creating request")
 	rr := httptest.NewRecorder()
 	wrappedHandler.ServeHTTP(rr, req)

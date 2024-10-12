@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -19,11 +18,14 @@ func (v *Verifier) Flush() error {
 	if len(v.errors) == 0 {
 		return nil
 	}
+
 	errMessages := make([]string, len(v.errors))
+
 	for i, err := range v.errors {
-		errMessages[i] = fmt.Sprintf("\n\t%s", err.Message)
+		errMessages[i] = "\n\t" + err.Message
 	}
-	message := fmt.Sprintf("Verification failed:%s", strings.Join(errMessages, ";"))
+	
+	message := "Verification failed:" + strings.Join(errMessages, ";")
 	return &VerificationError{Message: message}
 }
 

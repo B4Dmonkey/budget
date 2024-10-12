@@ -9,21 +9,6 @@ import (
 
 	"my-budget/database/orm"
 )
-
-type MockEnvConfig struct {
-	mock.Mock
-}
-
-func (m *MockEnvConfig) IsDev() bool {
-	args := m.Called()
-	return args.Bool(0)
-}
-
-func (m *MockEnvConfig) Addr() string {
-	args := m.Called()
-	return args.String(0)
-}
-
 type MockDB struct {
 	mock.Mock
 }
@@ -54,9 +39,6 @@ func (m *MockDB) GetTransactionsInDateRange(ctx context.Context, arg orm.GetTran
 }
 
 func setupTestServer(t *testing.T) *httptest.Server {
-	mockEnv := new(MockEnvConfig)
-	mockEnv.On("IsDev").Return(true)
-	mockEnv.On("Addr").Return(":80")
 	// ctx := context.Background()
 	app := New()
 	// assert.Equal(t, "test_address", app.server.Addr)

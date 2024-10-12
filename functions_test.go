@@ -115,8 +115,8 @@ func TestProcessNewTransactions(t *testing.T) {
 		expectErr       bool
 		expectedErrType error
 	}{
-		// "It fails when db is nil":     {db: nil, ctx: mock_ctx, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{}},
-		// "It fails when ctx is nil":    {db: mock_db, ctx: nil, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{}},
+		"It fails when db is nil":     {db: nil, ctx: mock_ctx, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{}},
+		"It fails when ctx is nil":    {db: mock_db, ctx: nil, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{}},
 		"It fails when header is nil": {db: mock_db, ctx: mock_ctx, header: nil, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{}},
 		"It fails when header filename is incorrect": {
 			db:              mock_db,

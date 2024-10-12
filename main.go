@@ -19,28 +19,6 @@ import (
 	"my-budget/database/orm"
 )
 
-func init() {
-	var connectOnce sync.Once
-
-	log.Println("Extending sqlite3 driver...")
-	connectOnce.Do(func() {
-		sql.Register("sqlite3_extended", &sqlite.SQLiteDriver{
-			ConnectHook: func(conn *sqlite.SQLiteConn) error {
-				if err := conn.RegisterFunc("uuid", newUUID, false); err != nil {
-					return err
-				}
-
-				if err := conn.RegisterFunc("current_timestamp", currentTimestamp, false); err != nil {
-					return err
-				}
-
-				return nil
-			},
-		})
-	})
-	log.Println("Extended sqlite3 driver successfully")
-}
-
 // //go:embed public/*
 // var publicDir embed.FS
 
@@ -67,9 +45,32 @@ func ConnectToDatabase() (*sql.DB, error) {
 	log.Println("Connecting to database...")
 
 	var connection *sql.DB
+
 	var ok bool
+
 	var err error
+
 	var DATABASE_LOC string
+
+	var connectOnce sync.Once
+
+	log.Println("Extending sqlite3 driver...")
+	connectOnce.Do(func() {
+		sql.Register("sqlite3_extended", &sqlite.SQLiteDriver{
+			ConnectHook: func(conn *sqlite.SQLiteConn) error {
+				if err := conn.RegisterFunc("uuid", newUUID, false); err != nil {
+					return err
+				}
+
+				if err := conn.RegisterFunc("current_timestamp", currentTimestamp, false); err != nil {
+					return err
+				}
+
+				return nil
+			},
+		})
+	})
+	log.Println("Extended sqlite3 driver successfully")
 
 	if DATABASE_LOC, ok = os.LookupEnv("DATABASE_LOC"); !ok || DATABASE_LOC == "" {
 		return nil, errors.New("DATABASE_LOC is not set")

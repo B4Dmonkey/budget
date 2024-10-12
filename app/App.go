@@ -47,7 +47,7 @@ func (a *App) AddHandler(method string, path string, handler HandlerFunc) {
 		ctx := Context{
 			Req: r,
 			Res: w,
-			DB:	a.dbQueries,
+			DB:  a.dbQueries,
 		}
 		handler(ctx)
 	})
@@ -61,5 +61,9 @@ func (a *App) Listen(addr string) error {
 	return a.Server.ListenAndServe()
 }
 
-func (a *App) Get(pattern string, handler HandlerFunc)  { a.AddHandler(http.MethodGet, pattern, handler) }
-func (a *App) Post(pattern string, handler HandlerFunc) { a.AddHandler(http.MethodPost, pattern, handler) }
+func (a *App) Get(pattern string, handler HandlerFunc) {
+	a.AddHandler(http.MethodGet, pattern, handler)
+}
+func (a *App) Post(pattern string, handler HandlerFunc) {
+	a.AddHandler(http.MethodPost, pattern, handler)
+}

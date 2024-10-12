@@ -140,7 +140,7 @@ func New() *App {
 // }
 
 // func (a *App) Render(view View) (string, error) {
-// ! The abastraction is too early
+// ! The abstraction is too early
 // 	if _, ok := view.(RenderOverridden); ok {
 // 		return view.(RenderOverridden).Render()
 // 	}

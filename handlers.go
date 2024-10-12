@@ -61,7 +61,12 @@ func (a *App) documents(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error reading file", http.StatusBadRequest)
 		return
 	}
-	tx.Commit()
+
+	if err := tx.Commit(); err != nil {
+		log.Println("Error committing transaction:", err)
+		http.Error(w, "Error reading file", http.StatusBadRequest)
+		return
+	}
 
 	// ?This should be programmatically determined
 	start_date := time.Date(2024, time.September, 1, 0, 0, 0, 0, time.Local)
@@ -79,7 +84,7 @@ func (a *App) documents(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error reading template file", http.StatusInternalServerError)
 	}
 
-	template, err := mustache.ParseString(string(template_file))
+	template, _ := mustache.ParseString(string(template_file))
 	var viewableTransactions []TransactionViewModel
 	for _, transaction := range transactions {
 		balance, _ := transaction.Balance.Value()

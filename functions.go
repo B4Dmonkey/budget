@@ -67,21 +67,18 @@ func GetTransactions(db orm.Querier, ctx context.Context, startDate time.Time, e
 
 func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipart.FileHeader, file io.Reader) error {
 	log.Println("Processing transactions")
-	if db == nil {
-		return newValidationError("Database connection is nil")
+	verify := Verifier{}
+	verify.That(db != nil, "Database connection is nil")
+	verify.That(ctx != nil, "Context is nil")
+	verify.That(header != nil, "Header is nil")
+	verify.That(file != nil, "File is nil")
+	if err := verify.Flush(); err != nil {
+		return err
 	}
-	if ctx == nil {
-		return newValidationError("Context is nil")
-	}
-	if header == nil {
-		return newValidationError("Header is nil")
-	}
-	if file == nil {
-		return newValidationError("File is nil")
-	}
+	
 	fileName := strings.ToLower(header.Filename)
 	if !strings.HasPrefix(fileName, "chase activity") {
-		return newValidationError(fmt.Sprintf("Filename '%s' does not start with 'chase activity'", header.Filename))
+		return newVerificationError(fmt.Sprintf("Filename '%s' does not start with 'chase activity'", header.Filename))
 	}
 
 	if err := SaveFileToDisk(header, file); err != nil {

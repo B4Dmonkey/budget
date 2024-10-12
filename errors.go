@@ -1,13 +1,40 @@
 package main
 
-// ValidationError is an error type that represents an error that occurred when checking inputs
-type ValidationError struct{ Message string }
+import (
+	"fmt"
+	"strings"
+)
+
+type Verifier struct {
+	errors []VerificationError
+}
+
+func (v *Verifier) That(condition bool, message string) {
+	if !condition {
+		v.errors = append(v.errors, VerificationError{Message: message})
+	}
+}
+
+func (v *Verifier) Flush() error {
+	if len(v.errors) == 0 {
+		return nil
+	}
+	errMessages := make([]string, len(v.errors))
+	for i, err := range v.errors {
+		errMessages[i] = fmt.Sprintf("\n\t%s", err.Message)
+	}
+	message := fmt.Sprintf("Verification failed:%s", strings.Join(errMessages, ";"))
+	return &VerificationError{Message: message}
+}
+
+// VerificationError is an error type that represents an error that occurred when checking inputs
+type VerificationError struct{ Message string }
 
 // Implement the Error interface for the ValidationError type
-func (e *ValidationError) Error() string { return e.Message }
+func (e *VerificationError) Error() string { return e.Message }
 
-// newValidationError creates a new ValidationError with the given message
-func newValidationError(message string) error { return &ValidationError{Message: message} }
+// newVerificationError creates a new ValidationError with the given message
+func newVerificationError(message string) error { return &VerificationError{Message: message} }
 
 // ParseError is an error type that represents an error that occurred when parsing data
 type ParseError struct{ Message string }

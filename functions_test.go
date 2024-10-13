@@ -53,7 +53,9 @@ func TestConvertCurrencyStringToIntOrNil(t *testing.T) {
 }
 
 func TestGetTransactions(t *testing.T) {
-	mock_db := new(MockDB)
+	ctx := context.Background()
+	test_db_conn := setupTestDb(t, ctx)
+	test_db := orm.New(test_db_conn)
 	mock_ctx := context.Background()
 	start_date := time.Date(2024, time.September, 1, 0, 0, 0, 0, time.Local)
 	end_date := time.Date(2024, time.September, 30, 23, 59, 59, 999999999, time.Local)
@@ -64,17 +66,10 @@ func TestGetTransactions(t *testing.T) {
 		expectErr bool
 	}{
 		"It fails when db is nil":            {db: nil, ctx: mock_ctx, expectErr: true},
-		"It fails when ctx is nil":           {db: mock_db, ctx: nil, expectErr: true},
-		"It returns a slice of Transactions": {db: mock_db, ctx: mock_ctx, expectErr: false},
+		"It fails when ctx is nil":           {db: test_db, ctx: nil, expectErr: true},
+		// Todo: Need to generate some test data
+		// "It returns a slice of Transactions": {db: test_db, ctx: mock_ctx, expectErr: false},
 	}
-
-	mock_db.
-		On(
-			"GetTransactionsInDateRange",
-			mock_ctx,
-			orm.GetTransactionsInDateRangeParams{PostingDate: start_date, PostingDate_2: end_date},
-		).
-		Return([]orm.Transaction{}, nil)
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -90,10 +85,11 @@ func TestGetTransactions(t *testing.T) {
 }
 
 func TestProcessNewTransactions(t *testing.T) {
-	mock_db := new(MockDB)
-	mock_ctx := context.Background()
+	ctx := context.Background()
+	test_db_conn := setupTestDb(t,ctx)
+	test_db := orm.New(test_db_conn)
 	mock_document_name := "Chase Activity Sept 27.CSV"
-	mock_document_id := "new-document-id"
+	// mock_document_id := "new-document-id"
 	header := &multipart.FileHeader{Filename: mock_document_name}
 
 	mock_csv_data, err := os.Open("testdata/Chase Activity Sept 27.CSV")
@@ -102,15 +98,6 @@ func TestProcessNewTransactions(t *testing.T) {
 	}
 	defer mock_csv_data.Close()
 
-	mock_db.
-		On("FindOneDocumentMeta", mock_ctx, header.Filename).
-		Return("", sql.ErrNoRows)
-	mock_db.
-		On("CreateDocumentMeta", mock_ctx, orm.CreateDocumentMetaParams{
-			Name:         header.Filename,
-			PersistedLoc: header.Filename,
-		}).
-		Return(orm.DocumentsMetum{ID: mock_document_id}, nil)
 	tests := map[string]struct {
 		db              orm.Querier
 		ctx             context.Context
@@ -120,34 +107,34 @@ func TestProcessNewTransactions(t *testing.T) {
 		expectedErrType error
 	}{
 		"It fails when db is nil": {
-			db: nil, ctx: mock_ctx, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
+			db: nil, ctx: ctx, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
 		},
 		"It fails when ctx is nil": {
-			db: mock_db, ctx: nil, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
+			db: test_db, ctx: nil, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
 		},
 		"It fails when header is nil": {
-			db: mock_db, ctx: mock_ctx, header: nil, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
+			db: test_db, ctx: ctx, header: nil, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
 		},
 		"It fails when header filename is incorrect": {
-			db:              mock_db,
-			ctx:             mock_ctx,
+			db:              test_db,
+			ctx:             ctx,
 			header:          &multipart.FileHeader{Filename: "test.csv"},
 			file:            mock_csv_data,
 			expectErr:       true,
 			expectedErrType: &VerificationError{},
 		},
 		"It fails when file is nil": {
-			db: mock_db, ctx: mock_ctx, header: header, file: nil, expectErr: true, expectedErrType: &VerificationError{},
+			db: test_db, ctx: ctx, header: header, file: nil, expectErr: true, expectedErrType: &VerificationError{},
 		},
 		"It fails when extracting date part": {
-			db:              mock_db,
-			ctx:             mock_ctx,
+			db:              test_db,
+			ctx:             ctx,
 			header:          &multipart.FileHeader{Filename: "chase activity test.csv"},
 			file:            mock_csv_data,
 			expectErr:       true,
 			expectedErrType: &ParseError{},
 		},
-		"It does the thing": {db: mock_db, ctx: mock_ctx, header: header, file: mock_csv_data},
+		"It does the thing": {db: test_db, ctx: ctx, header: header, file: mock_csv_data},
 	}
 
 	for name, tc := range tests {

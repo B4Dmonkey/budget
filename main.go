@@ -22,8 +22,13 @@ import (
 // //go:embed public/*
 // var publicDir embed.FS
 
+//go:embed database/schema.sql
+var ddl string
+
 //go:embed views/*
 var viewsDir embed.FS
+
+var connectOnce sync.Once
 
 const (
 	Details int = iota
@@ -41,7 +46,7 @@ type App struct {
 	db_queries *orm.Queries
 }
 
-func ConnectToDatabase() (*sql.DB, error) {
+func ConnectToDatabase(ctx context.Context) (*sql.DB, error) {
 	log.Println("Connecting to database...")
 
 	var connection *sql.DB
@@ -51,8 +56,6 @@ func ConnectToDatabase() (*sql.DB, error) {
 	var err error
 
 	var DATABASE_LOC string
-
-	var connectOnce sync.Once
 
 	log.Println("Extending sqlite3 driver...")
 	connectOnce.Do(func() {
@@ -81,6 +84,10 @@ func ConnectToDatabase() (*sql.DB, error) {
 		return nil, fmt.Errorf("Failed to connect the database: %s", DATABASE_LOC)
 	}
 
+	if _, err := connection.ExecContext(ctx, ddl); err != nil {
+		return nil, err
+	}
+
 	if connection.Ping() != nil {
 		return nil, fmt.Errorf("Failed to ping database: %s", DATABASE_LOC)
 	}
@@ -90,14 +97,8 @@ func ConnectToDatabase() (*sql.DB, error) {
 	return connection, nil
 }
 
-func New() *App {
+func New(conn *sql.DB) *App {
 	var errs []error
-
-	conn, err := ConnectToDatabase()
-
-	if err != nil {
-		errs = append(errs, err)
-	}
 
 	mux := http.NewServeMux()
 	app := App{
@@ -188,10 +189,15 @@ func (a *App) Run(ctx context.Context, wg *sync.WaitGroup) {
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
+	conn, err := ConnectToDatabase(ctx)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %s", err)
+	}
+
 	var wg sync.WaitGroup
 
 	wg.Add(1)
-	app := New()
+	app := New(conn)
 
 	go app.Run(ctx, &wg)
 	app.server.ListenAndServe()

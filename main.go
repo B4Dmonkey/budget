@@ -102,13 +102,21 @@ func ConnectToDatabase(ctx context.Context) (*sql.DB, error) {
 func New(conn *sql.DB) *App {
 	var errs []error
 
+	var addr string
+
+	var ok bool
+
+	if addr, ok = os.LookupEnv("DEVELOPMENT_PORT"); !ok || addr == "" {
+		errs = append(errs, errors.New("DEVELOPMENT_PORT is not set"))
+	}
+
 	mux := http.NewServeMux()
 	app := App{
 		db_conn:    conn,
 		db_queries: orm.New(conn),
 		mux:        mux,
 		server: &http.Server{
-			Addr:    os.Getenv("DEVELOPMENT_PORT"),
+			Addr:    addr,
 			Handler: mux,
 		},
 	}
@@ -203,6 +211,7 @@ func main() {
 
 	app := New(conn)
 
+	// ! This seems wrong, i should be listening in app.run
 	go app.Run(ctx, &wg)
 	app.server.ListenAndServe()
 

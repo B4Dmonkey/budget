@@ -84,8 +84,10 @@ func ConnectToDatabase(ctx context.Context) (*sql.DB, error) {
 		return nil, fmt.Errorf("Failed to connect the database: %s", DATABASE_LOC)
 	}
 
-	if _, err := connection.ExecContext(ctx, ddl); err != nil {
-		return nil, err
+	if DATABASE_LOC == ":memory:" {
+		if _, err := connection.ExecContext(ctx, ddl); err != nil {
+			return nil, fmt.Errorf("Failed to create schema: %s", err)
+		}
 	}
 
 	if connection.Ping() != nil {
@@ -116,6 +118,7 @@ func New(conn *sql.DB) *App {
 	}
 
 	app.addHandlers()
+
 	return &app
 }
 
@@ -197,6 +200,7 @@ func main() {
 	var wg sync.WaitGroup
 
 	wg.Add(1)
+
 	app := New(conn)
 
 	go app.Run(ctx, &wg)

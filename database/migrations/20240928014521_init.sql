@@ -1,5 +1,5 @@
 -- migrate:up
-CREATE TABLE
+CREATE TABLE IF NOT EXISTS
   documents_meta (
     id UUID PRIMARY KEY,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,

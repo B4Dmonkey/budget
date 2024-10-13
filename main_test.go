@@ -22,16 +22,6 @@ func TestApp(t *testing.T) {
 		// 	path:        "/styles.css",
 		// 	contentType: "text/css",
 		// },
-		// {
-		// 	description: "It serves the linkedin-icon.svg file",
-		// 	path:        "/assets/linkedin-icon.svg",
-		// 	contentType: "image/svg+xml",
-		// },
-		// {
-		// 	description: "It serves the github-mark.svg file",
-		// 	path:        "/assets/github-mark.svg",
-		// 	contentType: "image/svg+xml",
-		// },
 		{
 			description: "It serves the home page",
 			path:        "/",

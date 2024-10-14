@@ -67,7 +67,7 @@ func GetTransactions(
 
 	return db.GetTransactionsInDateRange(
 		ctx,
-		orm.GetTransactionsInDateRangeParams{PostingDate: startDate, PostingDate_2: endDate},
+		orm.GetTransactionsInDateRangeParams{StartDate: startDate, EndDate: endDate},
 	)
 }
 

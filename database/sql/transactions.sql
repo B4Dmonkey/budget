@@ -31,8 +31,8 @@ FROM
   transactions t
   JOIN documents_meta d ON t.document_id = d.id
 WHERE
-  t.posting_date >= ?
-  AND t.posting_date <= ?
+  t.posting_date >= @start_date
+  AND t.posting_date <= @end_date
   AND d.publishing_date = (
     SELECT
       MAX(publishing_date)

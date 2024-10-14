@@ -50,8 +50,8 @@ func (h HomePage) GetBinding() interface{} {
 	end_date := time.Date(2024, time.September, 30, 23, 59, 59, 999999999, time.Local)
 	pending_transactions, err := h.q.GetTransactionsInDateRange(
 		h.ctx,
-		orm.GetTransactionsInDateRangeParams{PostingDate: start_date,
-			PostingDate_2: end_date,
+		orm.GetTransactionsInDateRangeParams{StartDate: start_date,
+			EndDate: end_date,
 		})
 
 	if err != nil {

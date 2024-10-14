@@ -130,7 +130,6 @@ func TestProcessNewTransactions(t *testing.T) {
 
 	setupTestGetTransactions(tq)
 	mock_document_name := "Chase Activity Sept 27.CSV"
-	// mock_document_id := "new-document-id"
 	header := &multipart.FileHeader{Filename: mock_document_name}
 
 	mock_csv_data, err := os.Open("testdata/Chase Activity Sept 27.CSV")

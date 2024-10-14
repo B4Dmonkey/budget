@@ -1,8 +1,8 @@
 -- name: CreateDocumentMeta :one
 INSERT INTO
-  documents_meta (id, NAME, persisted_loc)
+  documents_meta (id, NAME, persisted_loc, publishing_date)
 VALUES
-  (UUID (), ?, ?) RETURNING *;
+  (UUID (), ?, ?, ?) RETURNING *;
 
 -- name: FindOneDocumentMeta :one
 SELECT

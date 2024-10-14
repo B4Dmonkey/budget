@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS
   );
 
 -- migrate:down
-DROP TABLE IF EXISTS documents;
+DROP TABLE IF EXISTS documents_meta;

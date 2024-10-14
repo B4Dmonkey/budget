@@ -23,7 +23,6 @@ WHERE
   AND balance IS NULL;
 
 -- name: GetTransactionsInDateRange :many
--- name: GetTransactionsInDateRange :many
 SELECT
   t.*,
   d.name AS document_name,

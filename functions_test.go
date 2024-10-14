@@ -52,10 +52,48 @@ func TestConvertCurrencyStringToIntOrNil(t *testing.T) {
 	}
 }
 
+func setupTestGetTransactions(testQuery TestQuery) {
+	filename := "Chase Activity Sept 27.CSV"
+
+	document, err := testQuery.q.CreateDocumentMeta(testQuery.ctx, orm.CreateDocumentMetaParams{
+		Name:         filename,
+		PersistedLoc: filename,
+		PublishingDate: sql.NullTime{
+			Time:  time.Date(2024, time.September, 15, 0, 0, 0, 0, time.Local),
+			Valid: true,
+		},
+	})
+
+	if err != nil {
+		testQuery.t.Fatalf("Failed to create document meta: %s", err)
+	}
+
+	err = testQuery.q.CreateTransaction(testQuery.ctx, orm.CreateTransactionParams{
+		DocumentID:  document.ID,
+		Details:     "Test Transaction Details",
+		PostingDate: time.Date(2024, time.September, 27, 0, 0, 0, 0, time.Local),
+		Amount:      123,
+		Type:        "Credit",
+		Balance:     sql.NullInt64{Int64: 123, Valid: true},
+	})
+
+	if err != nil {
+		testQuery.t.Fatalf("Failed to create transaction durning setup: %s", err)
+	}
+
+	if err := testQuery.tx.Commit(); err != nil {
+		testQuery.t.Fatalf("Failed to commit transaction: %s", err)
+	}
+}
 func TestGetTransactions(t *testing.T) {
 	ctx := context.Background()
-	test_db_conn := setupTestDb(t, ctx)
-	test_db := orm.New(test_db_conn)
+
+	tq := TestQuery{t: t, conn: setupTestDbConnection(t, ctx), ctx: ctx}
+	test_db := tq.setup()
+	defer tq.teardown()
+
+	setupTestGetTransactions(tq)
+
 	mock_ctx := context.Background()
 	start_date := time.Date(2024, time.September, 1, 0, 0, 0, 0, time.Local)
 	end_date := time.Date(2024, time.September, 30, 23, 59, 59, 999999999, time.Local)
@@ -65,10 +103,9 @@ func TestGetTransactions(t *testing.T) {
 		ctx       context.Context
 		expectErr bool
 	}{
-		"It fails when db is nil":            {db: nil, ctx: mock_ctx, expectErr: true},
-		"It fails when ctx is nil":           {db: test_db, ctx: nil, expectErr: true},
-		// Todo: Need to generate some test data
-		// "It returns a slice of Transactions": {db: test_db, ctx: mock_ctx, expectErr: false},
+		"It fails when db is nil":  {db: nil, ctx: mock_ctx, expectErr: true},
+		"It fails when ctx is nil": {db: test_db, ctx: nil, expectErr: true},
+		"It returns a slice of Transactions": {db: test_db, ctx: mock_ctx, expectErr: false},
 	}
 
 	for name, tc := range tests {
@@ -78,7 +115,7 @@ func TestGetTransactions(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
-				assert.NotNil(t, results) // ? technically not nil but yea empty list
+				assert.NotNil(t, results, "Expected 1 result") // ? technically not nil but yea empty list
 			}
 		})
 	}
@@ -86,7 +123,7 @@ func TestGetTransactions(t *testing.T) {
 
 func TestProcessNewTransactions(t *testing.T) {
 	ctx := context.Background()
-	test_db_conn := setupTestDb(t,ctx)
+	test_db_conn := setupTestDbConnection(t, ctx)
 	test_db := orm.New(test_db_conn)
 	mock_document_name := "Chase Activity Sept 27.CSV"
 	// mock_document_id := "new-document-id"

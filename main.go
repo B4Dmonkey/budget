@@ -28,7 +28,7 @@ var ddl string
 //go:embed views/*
 var viewsDir embed.FS
 
-var connectOnce sync.Once
+var CONNECT_ONCE sync.Once
 
 const (
 	Details int = iota
@@ -58,7 +58,7 @@ func ConnectToDatabase(ctx context.Context) (*sql.DB, error) {
 	var DATABASE_LOC string
 
 	log.Println("Extending sqlite3 driver...")
-	connectOnce.Do(func() {
+	CONNECT_ONCE.Do(func() {
 		sql.Register("sqlite3_extended", &sqlite.SQLiteDriver{
 			ConnectHook: func(conn *sqlite.SQLiteConn) error {
 				if err := conn.RegisterFunc("uuid", newUUID, false); err != nil {
@@ -82,12 +82,6 @@ func ConnectToDatabase(ctx context.Context) (*sql.DB, error) {
 	connection, err = sql.Open("sqlite3_extended", DATABASE_LOC)
 	if connection == nil || err != nil {
 		return nil, fmt.Errorf("Failed to connect the database: %s", DATABASE_LOC)
-	}
-
-	if DATABASE_LOC == ":memory:" {
-		if _, err := connection.ExecContext(ctx, ddl); err != nil {
-			return nil, fmt.Errorf("Failed to create schema: %s", err)
-		}
 	}
 
 	if connection.Ping() != nil {

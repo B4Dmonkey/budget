@@ -58,19 +58,13 @@ func TestAppRun(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	conn, err := ConnectToDatabase(ctx)
-
-	if err != nil {
-		t.Fatalf("Failed to connect to database: %s", err)
-	}
-
-	app := New(conn)
+	app := New(ctx)
 
 	var wg sync.WaitGroup
 
 	wg.Add(1)
 
-	go app.Run(ctx, &wg)
+	go app.Run(&wg)
 
 	time.Sleep(1 * time.Second) // Give the server a moment to start
 

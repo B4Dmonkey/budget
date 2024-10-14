@@ -9,7 +9,7 @@ import (
 	"my-budget/database/orm"
 )
 
-type TestQuery struct {
+type DomainTest struct {
 	t    *testing.T
 	conn *sql.DB
 	ctx  context.Context
@@ -18,34 +18,39 @@ type TestQuery struct {
 	txq  *orm.Queries
 }
 
-func (tq *TestQuery) setup() *orm.Queries {
-	if _, err := tq.conn.ExecContext(tq.ctx, ddl); err != nil {
-		tq.t.Fatalf("Failed to create schema: %s", err)
-	}
-	
-	tq.q = orm.New(tq.conn)
-	tx, err := tq.conn.Begin()
+func SetupDomainTest(t *testing.T) *DomainTest {
+	ctx := context.Background()
+	conn := setupTestDbConnection(t, ctx)
+	dt := DomainTest{t: t, conn: conn, ctx: ctx}
+	dt.setup()
+
+	return &dt
+}
+
+func (dt *DomainTest) setup() *orm.Queries {
+	dt.q = orm.New(dt.conn)
+	tx, err := dt.conn.Begin()
 
 	if err != nil {
-		tq.t.Fatalf("Failed to start transaction: %s", err)
+		dt.t.Fatalf("Failed to start transaction: %s", err)
 	}
 
-	tq.tx = tx
-	tq.txq = tq.q.WithTx(tq.tx)
+	dt.tx = tx
+	dt.txq = dt.q.WithTx(dt.tx)
 
-	return tq.q
+	return dt.q
 }
 
-func (tq *TestQuery) teardown() {
-	if err := tq.conn.Close(); err != nil {
-		tq.t.Fatalf("Failed to close database connection: %s", err)
-	}
-}
+func (dt *DomainTest) teardown() { teardownTestDbConnection(dt.t, dt.conn) }
 
 func setupTestDbConnection(t *testing.T, ctx context.Context) *sql.DB {
 	conn, err := ConnectToDatabase(ctx)
 	if err != nil {
 		t.Fatalf("Failed to connect to database: %s", err)
+	}
+
+	if _, err := conn.ExecContext(ctx, ddl); err != nil {
+		t.Fatalf("Failed to create schema: %s", err)
 	}
 
 	return conn
@@ -58,9 +63,28 @@ func teardownTestDbConnection(t *testing.T, db *sql.DB) {
 }
 
 func setupTestServer(t *testing.T) *httptest.Server {
-	app := New(setupTestDbConnection(t, context.Background()))
+	app := New(context.Background())
 	// assert.Equal(t, "test_address", app.server.Addr)
 	ts := httptest.NewServer(app.mux)
 
 	return ts
 }
+
+type AppTest struct {
+	t *testing.T
+	a *App
+}
+
+func NewAppTest(t *testing.T) *AppTest {
+	ctx := context.Background()
+	app := New(ctx)
+	a := AppTest{t: t, a: app}
+	a.setup()
+
+	return &a
+}
+
+func (at *AppTest) setup() {
+}
+
+func (at *AppTest) teardown() { teardownTestDbConnection(at.t, at.a.db_conn) }

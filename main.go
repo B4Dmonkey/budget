@@ -36,24 +36,7 @@ const (
 	Balance
 )
 
-type App struct {
-	mux        *http.ServeMux
-	server     *http.Server
-	db_conn    *sql.DB
-	db_queries *orm.Queries
-}
-
-func ConnectToDatabase(ctx context.Context) (*sql.DB, error) {
-	log.Println("Connecting to database...")
-
-	var connection *sql.DB
-
-	var ok bool
-
-	var err error
-
-	var DATABASE_LOC string
-
+func init() {
 	log.Println("Extending sqlite3 driver...")
 	CONNECT_ONCE.Do(func() {
 		sql.Register("sqlite3_extended", &sqlite.SQLiteDriver{
@@ -71,45 +54,53 @@ func ConnectToDatabase(ctx context.Context) (*sql.DB, error) {
 		})
 	})
 	log.Println("Extended sqlite3 driver successfully")
-
-	if DATABASE_LOC, ok = os.LookupEnv("DATABASE_LOC"); !ok || DATABASE_LOC == "" {
-		return nil, errors.New("DATABASE_LOC is not set")
-	}
-
-	connection, err = sql.Open("sqlite3_extended", DATABASE_LOC)
-	if connection == nil || err != nil {
-		return nil, fmt.Errorf("Failed to connect the database: %s", DATABASE_LOC)
-	}
-
-	if connection.Ping() != nil {
-		return nil, fmt.Errorf("Failed to ping database: %s", DATABASE_LOC)
-	}
-
-	log.Println("Database connected successfully")
-
-	return connection, nil
 }
 
-func New(conn *sql.DB) *App {
-	var errs []error
+type AppConfig struct {
+	ctx        context.Context
+	db_conn    *sql.DB
+	db_queries *orm.Queries
+	mux        *http.ServeMux
+	server     *http.Server
+}
 
+type App struct {
+	AppConfig
+}
+
+func defaultAppConfig(ctx context.Context) (*AppConfig, error) {
+	var ok bool
 	var addr string
 
-	var ok bool
+	conn, err := ConnectToDatabase(ctx)
+
+	if err != nil {
+		return nil, errors.New("Failed to connect to database:" + err.Error())
+	}
 
 	if addr, ok = os.LookupEnv("DEVELOPMENT_PORT"); !ok || addr == "" {
-		errs = append(errs, errors.New("DEVELOPMENT_PORT is not set"))
+		return nil, errors.New("DEVELOPMENT_PORT is not set")
 	}
 
 	mux := http.NewServeMux()
+	server := &http.Server{
+		Addr:    addr,
+		Handler: mux,
+	}
+
+	return &AppConfig{ctx: ctx, db_conn: conn, db_queries: orm.New(conn), mux: mux, server: server}, nil
+}
+
+func New(ctx context.Context) *App {
+	var errs []error
+
+	app_config, err := defaultAppConfig(ctx)
+	if err != nil {
+		errs = append(errs, err)
+	}
+
 	app := App{
-		db_conn:    conn,
-		db_queries: orm.New(conn),
-		mux:        mux,
-		server: &http.Server{
-			Addr:    addr,
-			Handler: mux,
-		},
+		AppConfig: *app_config,
 	}
 
 	if len(errs) > 0 {
@@ -135,7 +126,7 @@ func New(conn *sql.DB) *App {
 // 	return template.Render(viewBinding)
 // }
 
-func (a *App) Run(ctx context.Context, wg *sync.WaitGroup) {
+func (a *App) Run(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	go func() {
@@ -148,7 +139,7 @@ func (a *App) Run(ctx context.Context, wg *sync.WaitGroup) {
 		}
 	}()
 
-	<-ctx.Done()
+	<-a.ctx.Done()
 	log.Println("Shutting down HTTP server gracefully...")
 
 	shutdownCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
@@ -161,21 +152,45 @@ func (a *App) Run(ctx context.Context, wg *sync.WaitGroup) {
 	}
 }
 
+func ConnectToDatabase(ctx context.Context) (*sql.DB, error) {
+	log.Println("Connecting to database...")
+
+	var connection *sql.DB
+
+	var ok bool
+
+	var err error
+
+	var DATABASE_LOC string
+
+	if DATABASE_LOC, ok = os.LookupEnv("DATABASE_LOC"); !ok || DATABASE_LOC == "" {
+		return nil, errors.New("DATABASE_LOC is not set")
+	}
+
+	connection, err = sql.Open("sqlite3_extended", DATABASE_LOC)
+	if connection == nil || err != nil {
+		return nil, fmt.Errorf("Failed to connect the database: %s", DATABASE_LOC)
+	}
+
+	if connection.Ping() != nil {
+		return nil, fmt.Errorf("Failed to ping database: %s", DATABASE_LOC)
+	}
+
+	log.Println("Database connected successfully")
+
+	return connection, nil
+}
+
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
-
-	conn, err := ConnectToDatabase(ctx)
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %s", err)
-	}
 
 	var wg sync.WaitGroup
 
 	wg.Add(1)
 
-	app := New(conn)
+	app := New(ctx)
 
-	go app.Run(ctx, &wg)
+	go app.Run(&wg)
 
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)

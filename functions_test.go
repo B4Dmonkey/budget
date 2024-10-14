@@ -52,7 +52,7 @@ func TestConvertCurrencyStringToIntOrNil(t *testing.T) {
 	}
 }
 
-func setupTestGetTransactions(testQuery TestQuery) {
+func setupTestGetTransactions(testQuery *DomainTest) {
 	filename := "Chase Activity Sept 27.CSV"
 
 	document, err := testQuery.q.CreateDocumentMeta(testQuery.ctx, orm.CreateDocumentMetaParams{
@@ -86,13 +86,10 @@ func setupTestGetTransactions(testQuery TestQuery) {
 	}
 }
 func TestGetTransactions(t *testing.T) {
-	ctx := context.Background()
+	dt := SetupDomainTest(t)
+	defer dt.teardown()
 
-	tq := TestQuery{t: t, conn: setupTestDbConnection(t, ctx), ctx: ctx}
-	test_db := tq.setup()
-	defer tq.teardown()
-
-	setupTestGetTransactions(tq)
+	setupTestGetTransactions(dt)
 
 	mock_ctx := context.Background()
 	start_date := time.Date(2024, time.September, 1, 0, 0, 0, 0, time.Local)
@@ -104,8 +101,8 @@ func TestGetTransactions(t *testing.T) {
 		expectErr bool
 	}{
 		"It fails when db is nil":            {db: nil, ctx: mock_ctx, expectErr: true},
-		"It fails when ctx is nil":           {db: test_db, ctx: nil, expectErr: true},
-		"It returns a slice of Transactions": {db: test_db, ctx: mock_ctx, expectErr: false},
+		"It fails when ctx is nil":           {db: dt.q, ctx: nil, expectErr: true},
+		"It returns a slice of Transactions": {db: dt.q, ctx: mock_ctx, expectErr: false},
 	}
 
 	for name, tc := range tests {
@@ -122,13 +119,9 @@ func TestGetTransactions(t *testing.T) {
 }
 
 func TestProcessNewTransactions(t *testing.T) {
-	ctx := context.Background()
-
-	tq := TestQuery{t: t, conn: setupTestDbConnection(t, ctx), ctx: ctx}
-	test_db := tq.setup()
-	defer tq.teardown()
-
-	setupTestGetTransactions(tq)
+	dt := SetupDomainTest(t)
+	defer dt.teardown()
+	setupTestGetTransactions(dt)
 
 	mock_document_name := "Chase Activity Sept 27.CSV"
 	header := &multipart.FileHeader{Filename: mock_document_name}
@@ -148,34 +141,34 @@ func TestProcessNewTransactions(t *testing.T) {
 		expectedErrType error
 	}{
 		"It fails when db is nil": {
-			db: nil, ctx: ctx, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
+			db: nil, ctx: dt.ctx, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
 		},
 		"It fails when ctx is nil": {
-			db: test_db, ctx: nil, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
+			db: dt.q, ctx: nil, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
 		},
 		"It fails when header is nil": {
-			db: test_db, ctx: ctx, header: nil, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
+			db: dt.q, ctx: dt.ctx, header: nil, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
 		},
 		"It fails when header filename is incorrect": {
-			db:              test_db,
-			ctx:             ctx,
+			db:              dt.q,
+			ctx:             dt.ctx,
 			header:          &multipart.FileHeader{Filename: "test.csv"},
 			file:            mock_csv_data,
 			expectErr:       true,
 			expectedErrType: &VerificationError{},
 		},
 		"It fails when file is nil": {
-			db: test_db, ctx: ctx, header: header, file: nil, expectErr: true, expectedErrType: &VerificationError{},
+			db: dt.q, ctx: dt.ctx, header: header, file: nil, expectErr: true, expectedErrType: &VerificationError{},
 		},
 		"It fails when extracting date part": {
-			db:              test_db,
-			ctx:             ctx,
+			db:              dt.q,
+			ctx:             dt.ctx,
 			header:          &multipart.FileHeader{Filename: "chase activity test.csv"},
 			file:            mock_csv_data,
 			expectErr:       true,
 			expectedErrType: &ParseError{},
 		},
-		"It does the thing": {db: test_db, ctx: ctx, header: header, file: mock_csv_data},
+		"It does the thing": {db: dt.q, ctx: dt.ctx, header: header, file: mock_csv_data},
 	}
 
 	for name, tc := range tests {

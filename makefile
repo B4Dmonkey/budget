@@ -14,11 +14,11 @@ export $(shell sed 's/=.*//' .env)
 endif
 
 
-# !Not ideal if working multiple people
 check:
 	@sqlc vet
 	@golangci-lint run
 	
+# !Not ideal if working multiple people
 dev:
 	@~/go/bin/air
 
@@ -46,7 +46,7 @@ binary:
 pheonix: nuke db
 	@echo "From the ashes the pheonix rises once again..."
 
-# Data base migrations
+### * Data base migrations * ###
 db-build db: db-migration-up sql-queries 
 
 new-migration:
@@ -62,15 +62,6 @@ db-seed-database seed:
 	@echo "No need to seed the database..."
 # @test -x $(APP_SCRIPTS_DIR)/seed_root_user.sh || chmod +x $(APP_SCRIPTS_DIR)/seed_root_user.sh
 # $(APP_SCRIPTS_DIR)/seed_root_user.sh
-
-# !Not needed for this project
-# db_migrate_test_database:
-# 	@dbmate --migrations-dir=$(DB_MIGRATION_DIR) --schema-file=$(TEST_DB_SCHEMA_FILE) --url=$(TEST_DATABASE_URL) up 
-
-# !Not needed for this project
-# db_clean_up_test_database:
-# 	@echo "Cleaning up test database..."
-# 	@rm $(TEST_DB_SCHEMA_FILE) $(DB_DIR)/test.db
 
 sql-queries orm:
 	@sqlc generate

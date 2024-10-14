@@ -94,8 +94,8 @@ func (a *App) documents(w http.ResponseWriter, r *http.Request) {
 
 	var viewableTransactions []TransactionViewModel
 
-	for _, transaction := range transactions {
-		balance, _ := transaction.Balance.Value()
+	for _, pt := range transactions {
+		balance, _ := pt.Transaction.Balance.Value()
 
 		var balanceStr string
 
@@ -106,9 +106,9 @@ func (a *App) documents(w http.ResponseWriter, r *http.Request) {
 		}
 
 		viewableTransactions = append(viewableTransactions, TransactionViewModel{
-			Date:        transaction.PostingDate.Format("2006-01-02"),
-			Amount:      ConvertCurrencyIntToString(transaction.Amount),
-			Description: transaction.Description,
+			Date:        pt.Transaction.PostingDate.Format("2006-01-02"),
+			Amount:      ConvertCurrencyIntToString(pt.Transaction.Amount),
+			Description: pt.Transaction.Description,
 			Balance:     balanceStr,
 		})
 	}

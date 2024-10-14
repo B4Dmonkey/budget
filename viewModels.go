@@ -60,9 +60,9 @@ func (h HomePage) GetBinding() interface{} {
 
 	var transactionsView TransactionViewModelSlice
 
-	for _, transaction := range pending_transactions {
+	for _, pt := range pending_transactions {
 		var balanceStr string
-		balance, _ := transaction.Balance.Value()
+		balance, _ := pt.Transaction.Balance.Value()
 
 		if balance == nil {
 			balanceStr = ""
@@ -71,9 +71,9 @@ func (h HomePage) GetBinding() interface{} {
 		}
 
 		transactionsView = append(transactionsView, TransactionViewModel{
-			Date:        transaction.PostingDate.Format("2006-01-02"),
-			Amount:      ConvertCurrencyIntToString(transaction.Amount),
-			Description: transaction.Description,
+			Date:        pt.Transaction.PostingDate.Format("2006-01-02"),
+			Amount:      ConvertCurrencyIntToString(pt.Transaction.Amount),
+			Description: pt.Transaction.Description,
 			Balance:     balanceStr,
 		})
 	}

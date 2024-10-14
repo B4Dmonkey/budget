@@ -24,20 +24,19 @@ WHERE
 
 -- name: GetTransactionsInDateRange :many
 SELECT
-  t.*,
-  d.name AS document_name,
-  d.publishing_date AS document_publishing_date
+  sqlc.embed(transactions),
+  sqlc.embed(documents_meta)
 FROM
-  transactions t
-  JOIN documents_meta d ON t.document_id = d.id
+  transactions
+  JOIN documents_meta ON transactions.document_id=documents_meta.id
 WHERE
-  t.posting_date >= @start_date
-  AND t.posting_date <= @end_date
-  AND d.publishing_date = (
+  transactions.posting_date>=@start_date
+  AND transactions.posting_date<=@end_date
+  AND documents_meta.publishing_date=(
     SELECT
       MAX(publishing_date)
     FROM
       documents_meta
   )
 ORDER BY
-  t.posting_date DESC;
+  transactions.posting_date DESC;

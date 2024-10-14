@@ -46,6 +46,7 @@ func (h HomePage) GetBinding() interface{} {
 	if h.ctx == nil {
 		panic("Binding called without setting context")
 	}
+
 	start_date := time.Date(2024, time.September, 1, 0, 0, 0, 0, time.Local)
 	end_date := time.Date(2024, time.September, 30, 23, 59, 59, 999999999, time.Local)
 	pending_transactions, err := h.q.GetTransactionsInDateRange(
@@ -62,6 +63,7 @@ func (h HomePage) GetBinding() interface{} {
 
 	for _, pt := range pending_transactions {
 		var balanceStr string
+
 		balance, _ := pt.Transaction.Balance.Value()
 
 		if balance == nil {
@@ -77,6 +79,7 @@ func (h HomePage) GetBinding() interface{} {
 			Balance:     balanceStr,
 		})
 	}
+
 	return HomePageViewModel{
 		HasUnprocessedTransactions: len(transactionsView) > 0,
 		UnprocessedTransactions:    transactionsView,

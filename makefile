@@ -17,6 +17,9 @@ endif
 check:
 	@sqlc vet
 	@golangci-lint run
+
+fix:
+	@golangci-lint run --fix
 	
 # !Not ideal if working multiple people
 dev:

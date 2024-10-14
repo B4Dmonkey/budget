@@ -129,6 +129,7 @@ func TestProcessNewTransactions(t *testing.T) {
 	defer tq.teardown()
 
 	setupTestGetTransactions(tq)
+
 	mock_document_name := "Chase Activity Sept 27.CSV"
 	header := &multipart.FileHeader{Filename: mock_document_name}
 

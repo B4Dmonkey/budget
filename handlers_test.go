@@ -17,7 +17,9 @@ func TestRoot(t *testing.T) {
 
 	req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
 	assert.Nil(t, err, "Error creating request")
+
 	client := &http.Client{}
+
 	result, err := client.Do(req)
 	assert.Nil(t, err, "Error performing request")
 	assert.Equal(t, http.StatusOK, result.StatusCode, "Incorrect status code")

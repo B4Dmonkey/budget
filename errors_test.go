@@ -8,7 +8,9 @@ import (
 
 func TestVerify(t *testing.T) {
 	var err error
+
 	verify := Verifier{}
+
 	one := 1
 	verify.That(one == 1, "1 should equal 1")
 

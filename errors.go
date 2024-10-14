@@ -26,6 +26,7 @@ func (v *Verifier) Flush() error {
 	}
 	
 	message := "Verification failed:" + strings.Join(errMessages, ";")
+	
 	return &VerificationError{Message: message}
 }
 

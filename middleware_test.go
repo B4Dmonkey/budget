@@ -21,7 +21,9 @@ func TestWithMiddleware(t *testing.T) {
 	wrappedHandler := WithMiddleware(sampleHandler, sampleMiddleware)
 	req, err := http.NewRequest(http.MethodGet, "/test", nil)
 	assert.Nil(t, err, "Error creating request")
+
 	rr := httptest.NewRecorder()
+
 	wrappedHandler.ServeHTTP(rr, req)
 	assert.Equal(t, http.StatusOK, rr.Code, "Status code not OK")
 	assert.Equal(t, "Middleware", rr.Body.String(), "Response body not as expected")

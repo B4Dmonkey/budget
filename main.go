@@ -169,7 +169,7 @@ func (a *App) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	go func() {
-		log.Println("Initializing HTTP server...")
+		log.Println("Listen and server at", a.server.Addr)
 
 		err := a.server.ListenAndServe()
 
@@ -205,9 +205,7 @@ func main() {
 
 	app := New(conn)
 
-	// ! This seems wrong, i should be listening in app.run
 	go app.Run(ctx, &wg)
-	app.server.ListenAndServe()
 
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM)

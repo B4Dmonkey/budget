@@ -4,8 +4,13 @@ import (
 	// "context"
 	// "sync"
 	// "time"
+	"context"
 	"net/http"
+	"sync"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestApp(t *testing.T) {
@@ -48,24 +53,28 @@ func TestApp(t *testing.T) {
 	}
 }
 
-// func TestAppStart(t *testing.T) {
-// 	ctx, cancel := context.WithCancel(context.Background())
-// 	defer cancel()
-// 	mockEnv := new(MockEnvConfig)
-// 	mockEnv.On("IsDev").Return(true)
-// 	mockEnv.On("Addr").Return("localhost:3210")
+func TestAppRun(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-// 	app := CreateApp(ctx, mockEnv)
+	conn, err := ConnectToDatabase(ctx)
 
-// 	var wg sync.WaitGroup
-// 	wg.Add(1)
+	if err != nil {
+		t.Fatalf("Failed to connect to database: %s", err)
+	}
 
-// 	go app.Start(&wg)
+	app := New(conn)
 
-// 	time.Sleep(1 * time.Second) // Give the server a moment to start
+	var wg sync.WaitGroup
 
-// 	cancel()
-// 	wg.Wait()
+	wg.Add(1)
 
-// 	assert.True(t, true, "Server shutdown gracefully")
-// }
+	go app.Run(ctx, &wg)
+
+	time.Sleep(1 * time.Second) // Give the server a moment to start
+
+	cancel()
+	wg.Wait()
+
+	assert.True(t, true, "Server shutdown gracefully")
+}

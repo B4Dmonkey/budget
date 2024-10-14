@@ -19,9 +19,6 @@ import (
 	"my-budget/database/orm"
 )
 
-// //go:embed public/*
-// var publicDir embed.FS
-
 //go:embed database/schema.sql
 var ddl string
 
@@ -123,33 +120,6 @@ func New(conn *sql.DB) *App {
 
 	return &app
 }
-
-// func (a *App) InitializeServer() {
-// Todo I need to grab the static stuff from this method. It's low priority
-// 	if err := CreateDatabase(); err != nil {
-// 		log.Fatal(err.Error())
-// 		return
-// 	}
-// fSys, err := fs.Sub(publicDir, "public")
-
-// if err != nil {
-// 	log.Fatal("Failed to load public dir", err)
-// }
-
-// a.mux.Handle(GET+" /assets/", http.FileServer(http.FS(fSys)))
-
-// a.mux.HandleFunc(GET+" /styles.css", func(w http.ResponseWriter, r *http.Request) {
-// 	styles, err := publicDir.ReadFile("public/styles.css")
-// 	if err != nil {
-// 		http.Error(w, "Internal server error", http.StatusInternalServerError)
-// 		return
-// 	}
-// 	w.Header().Set("Content-Type", "text/css")
-// 	w.Write(styles)
-// })
-
-// 	a.SetRouteHandlers(routes)
-// }
 
 // func (a *App) Render(view View) (string, error) {
 // ! The abstraction is too early

@@ -54,6 +54,7 @@ func TestApp(t *testing.T) {
 }
 
 func TestAppRun(t *testing.T) {
+	// ? Is there room to simplify the graceful shutdown of the server?
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

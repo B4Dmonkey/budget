@@ -103,8 +103,8 @@ func TestGetTransactions(t *testing.T) {
 		ctx       context.Context
 		expectErr bool
 	}{
-		"It fails when db is nil":  {db: nil, ctx: mock_ctx, expectErr: true},
-		"It fails when ctx is nil": {db: test_db, ctx: nil, expectErr: true},
+		"It fails when db is nil":            {db: nil, ctx: mock_ctx, expectErr: true},
+		"It fails when ctx is nil":           {db: test_db, ctx: nil, expectErr: true},
 		"It returns a slice of Transactions": {db: test_db, ctx: mock_ctx, expectErr: false},
 	}
 
@@ -123,8 +123,12 @@ func TestGetTransactions(t *testing.T) {
 
 func TestProcessNewTransactions(t *testing.T) {
 	ctx := context.Background()
-	test_db_conn := setupTestDbConnection(t, ctx)
-	test_db := orm.New(test_db_conn)
+
+	tq := TestQuery{t: t, conn: setupTestDbConnection(t, ctx), ctx: ctx}
+	test_db := tq.setup()
+	defer tq.teardown()
+
+	setupTestGetTransactions(tq)
 	mock_document_name := "Chase Activity Sept 27.CSV"
 	// mock_document_id := "new-document-id"
 	header := &multipart.FileHeader{Filename: mock_document_name}

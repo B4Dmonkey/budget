@@ -71,20 +71,25 @@ func setupTestServer(t *testing.T) *httptest.Server {
 }
 
 type AppTest struct {
-	t *testing.T
-	a *App
+	t          *testing.T
+	a          *App
+	testServer *httptest.Server
 }
 
 func NewAppTest(t *testing.T) *AppTest {
 	ctx := context.Background()
+
 	app := New(ctx)
-	a := AppTest{t: t, a: app}
+
+	a := AppTest{t: t, a: app, testServer: httptest.NewServer(app.mux)}
 	a.setup()
 
 	return &a
 }
 
-func (at *AppTest) setup() {
-}
+func (at *AppTest) setup() {}
 
-func (at *AppTest) teardown() { teardownTestDbConnection(at.t, at.a.db_conn) }
+func (at *AppTest) teardown() { 
+	teardownTestDbConnection(at.t, at.a.db_conn)
+	at.testServer.Close()
+}

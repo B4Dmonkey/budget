@@ -14,8 +14,8 @@ import (
 )
 
 func TestApp(t *testing.T) {
-	ts := setupTestServer(t)
-	defer ts.Close()
+	at := NewAppTest(t)
+	defer at.teardown()
 
 	tests := []struct {
 		description string
@@ -35,7 +35,7 @@ func TestApp(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		resp, err := http.Get(ts.URL + test.path)
+		resp, err := http.Get(at.testServer.URL + test.path)
 		if err != nil {
 			t.Fatalf("Failed to make request: %v", err)
 		}

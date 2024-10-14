@@ -56,6 +56,8 @@ func init() {
 	log.Println("Extended sqlite3 driver successfully")
 }
 
+type AppConfigFunc func(*AppConfig)
+
 type AppConfig struct {
 	ctx        context.Context
 	db_conn    *sql.DB
@@ -91,12 +93,24 @@ func defaultAppConfig(ctx context.Context) (*AppConfig, error) {
 	return &AppConfig{ctx: ctx, db_conn: conn, db_queries: orm.New(conn), mux: mux, server: server}, nil
 }
 
-func New(ctx context.Context) *App {
+func WithMux(mux *http.ServeMux) AppConfigFunc {
+	return func(a *AppConfig) { a.mux = mux }
+}
+
+func WithServer(server *http.Server) AppConfigFunc {
+	return func(a *AppConfig) { a.server = server }
+}
+
+func New(ctx context.Context, overrides ...AppConfigFunc) *App {
 	var errs []error
 
 	app_config, err := defaultAppConfig(ctx)
 	if err != nil {
 		errs = append(errs, err)
+	}
+
+	for _, override := range overrides {
+		override(app_config)
 	}
 
 	app := App{

@@ -12,10 +12,10 @@ import (
 )
 
 func TestRoot(t *testing.T) {
-	ts := setupTestServer(t)
-	defer ts.Close()
+	at := NewAppTest(t)
+	defer at.teardown()
 
-	req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
+	req, err := http.NewRequest(http.MethodGet, at.testServer.URL, nil)
 	assert.Nil(t, err, "Error creating request")
 
 	client := &http.Client{}
@@ -26,8 +26,8 @@ func TestRoot(t *testing.T) {
 }
 
 func TestDocuments(t *testing.T) {
-	ts := setupTestServer(t)
-	defer ts.Close()
+	at := NewAppTest(t)
+	defer at.teardown()
 
 	filePath := "/Users/appstack/Downloads/Chase Activity Sept 27.CSV"
 
@@ -50,7 +50,7 @@ func TestDocuments(t *testing.T) {
 	writer.Close()
 
 	// Create a new HTTP request
-	req, err := http.NewRequest(http.MethodPost, ts.URL+"/documents", body)
+	req, err := http.NewRequest(http.MethodPost, at.testServer.URL+"/documents", body)
 	assert.Nil(t, err, "Error creating request")
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 

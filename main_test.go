@@ -58,7 +58,9 @@ func TestAppRun(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	app := New(ctx)
+	conn := setupTestDbConnection(t, ctx)
+	defer teardownTestDbConnection(t, conn)
+	app := New(ctx, WithDbConnection(conn))
 
 	var wg sync.WaitGroup
 

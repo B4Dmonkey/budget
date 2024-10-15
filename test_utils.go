@@ -43,6 +43,31 @@ func (dt *DomainTest) setup() *orm.Queries {
 
 func (dt *DomainTest) teardown() { teardownTestDbConnection(dt.t, dt.conn) }
 
+type AppTest struct {
+	t          *testing.T
+	a          *App
+	testServer *httptest.Server
+}
+
+func NewAppTest(t *testing.T) *AppTest {
+	ctx := context.Background()
+	conn := setupTestDbConnection(t, ctx)
+
+	app := New(ctx, WithDbConnection(conn), WithOrmQueries(orm.New(conn)))
+
+	a := AppTest{t: t, a: app, testServer: httptest.NewServer(app.mux)}
+	a.setup()
+
+	return &a
+}
+
+func (at *AppTest) setup() {}
+
+func (at *AppTest) teardown() {
+	teardownTestDbConnection(at.t, at.a.db_conn)
+	at.testServer.Close()
+}
+
 func setupTestDbConnection(t *testing.T, ctx context.Context) *sql.DB {
 	conn, err := ConnectToDatabase(ctx)
 	if err != nil {
@@ -60,36 +85,4 @@ func teardownTestDbConnection(t *testing.T, db *sql.DB) {
 	if err := db.Close(); err != nil {
 		t.Fatalf("Failed to close database connection: %s", err)
 	}
-}
-
-func setupTestServer(t *testing.T) *httptest.Server {
-	app := New(context.Background())
-	// assert.Equal(t, "test_address", app.server.Addr)
-	ts := httptest.NewServer(app.mux)
-
-	return ts
-}
-
-type AppTest struct {
-	t          *testing.T
-	a          *App
-	testServer *httptest.Server
-}
-
-func NewAppTest(t *testing.T) *AppTest {
-	ctx := context.Background()
-
-	app := New(ctx)
-
-	a := AppTest{t: t, a: app, testServer: httptest.NewServer(app.mux)}
-	a.setup()
-
-	return &a
-}
-
-func (at *AppTest) setup() {}
-
-func (at *AppTest) teardown() { 
-	teardownTestDbConnection(at.t, at.a.db_conn)
-	at.testServer.Close()
 }

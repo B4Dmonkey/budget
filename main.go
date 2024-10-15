@@ -72,13 +72,8 @@ type App struct {
 
 func defaultAppConfig(ctx context.Context) (*AppConfig, error) {
 	var ok bool
+
 	var addr string
-
-	conn, err := ConnectToDatabase(ctx)
-
-	if err != nil {
-		return nil, errors.New("Failed to connect to database:" + err.Error())
-	}
 
 	if addr, ok = os.LookupEnv("DEVELOPMENT_PORT"); !ok || addr == "" {
 		return nil, errors.New("DEVELOPMENT_PORT is not set")
@@ -90,7 +85,7 @@ func defaultAppConfig(ctx context.Context) (*AppConfig, error) {
 		Handler: mux,
 	}
 
-	return &AppConfig{ctx: ctx, db_conn: conn, db_queries: orm.New(conn), mux: mux, server: server}, nil
+	return &AppConfig{ctx: ctx, mux: mux, server: server}, nil
 }
 
 func WithMux(mux *http.ServeMux) AppConfigFunc {
@@ -99,6 +94,14 @@ func WithMux(mux *http.ServeMux) AppConfigFunc {
 
 func WithServer(server *http.Server) AppConfigFunc {
 	return func(a *AppConfig) { a.server = server }
+}
+
+func WithDbConnection(conn *sql.DB) AppConfigFunc {
+	return func(a *AppConfig) { a.db_conn = conn }
+}
+
+func WithOrmQueries(queries *orm.Queries) AppConfigFunc {
+	return func(a *AppConfig) { a.db_queries = queries }
 }
 
 func New(ctx context.Context, overrides ...AppConfigFunc) *App {
@@ -111,6 +114,16 @@ func New(ctx context.Context, overrides ...AppConfigFunc) *App {
 
 	for _, override := range overrides {
 		override(app_config)
+	}
+
+	if app_config.db_conn == nil {
+		conn, err := ConnectToDatabase(ctx)
+		if err != nil {
+			errs = append(errs, err)
+		} else {
+			app_config.db_conn = conn
+			app_config.db_queries = orm.New(conn)
+		}
 	}
 
 	app := App{

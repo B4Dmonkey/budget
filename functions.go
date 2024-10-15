@@ -94,8 +94,8 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 		return err
 	}
 
-	// ! This logic is not correct. 
-	// ! Year is being assumed to be the current year instead of the year the file was created. 
+	// ! This logic is not correct.
+	// ! Year is being assumed to be the current year instead of the year the file was created.
 	// ! That should be done client side
 	parts := strings.Split(fileName, "activity")
 	datePart := strings.TrimSpace(parts[1])
@@ -115,7 +115,7 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 	if abbr, ok := monthMap[month]; ok {
 		month = abbr
 	} else {
-		return errors.New("Error parsing month from filename")
+		log.Println("Month not found in map, using original parsed name:", month)
 	}
 
 	datePart = month + " " + day
@@ -142,10 +142,11 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 	//todo: maybe send message for duplicate documents
 	if document_id == "" {
 		log.Println("Creating new document")
-		
+
 		document, err := db.CreateDocumentMeta(ctx, orm.CreateDocumentMetaParams{
-			Name:         header.Filename,
-			PersistedLoc: header.Filename,
+			Name:           header.Filename,
+			PersistedLoc:   header.Filename,
+			PublishingDate: sql.NullTime{Time: publishing_date, Valid: true},
 		})
 
 		if err != nil {

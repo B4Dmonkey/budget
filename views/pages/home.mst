@@ -4,12 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://unpkg.com/htmx.org@2.0.2"></script>
-  <title>Personal Site</title>
+  <script src="//unpkg.com/alpinejs" defer></script>
+  <title>WTG</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <main id="app">
-    <h1>My budget</h1>
+    <h1>Whats the gap?</h1>
+    <h2>Budget</h2>
+    <div x-data="{ open: false }">
+      <button @click="open=true">Edit</button>
+      <form x-show="open">
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount" value="{{Budget}}">
+        <button @click="open=false">Save</button>
+      </form>
+    </div>
     <h2>Add document</h2>
     <form hx-post="/documents" enctype="multipart/form-data" hx-target="#transactions">
       <label for="file">Upload File:</label>

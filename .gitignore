@@ -4,6 +4,7 @@
 database/data.db
 # * Directories
 .vscode/
+__pycache__/
 bin/
 database/orm/
 notebook/src/repo/

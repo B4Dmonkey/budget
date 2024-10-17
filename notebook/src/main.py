@@ -1,6 +1,8 @@
+# The purpose of this file is to serve as a helper for notebooks
 import sqlite3
 
-# * The purpose of this file is to serve as a helper for notebooks
+MEMORY_DATABASE = "file::memory:?cache=shared"
+
 
 def ping_db(conn) -> bool:
     try:
@@ -15,7 +17,7 @@ def ping_db(conn) -> bool:
 
 
 def main():
-    conn = sqlite3.connect("notebook.db")
+    conn = sqlite3.connect(MEMORY_DATABASE)
     ping_db(conn)
     conn.close()
 

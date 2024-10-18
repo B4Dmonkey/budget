@@ -1,4 +1,3 @@
-# The purpose of this file is to serve as a helper for notebooks
 import sqlite3
 
 MEMORY_DATABASE = "file::memory:?cache=shared"

@@ -3,7 +3,7 @@ import sqlite3
 MEMORY_DATABASE = "file::memory:?cache=shared"
 
 
-def ping_db(conn) -> bool:
+def ping_db(conn: sqlite3.Connection) -> bool:
     try:
         cursor = conn.cursor()
         cursor.execute("SELECT 1")
@@ -13,6 +13,10 @@ def ping_db(conn) -> bool:
     except sqlite3.Error as e:
         print(f"Database connection failed: {e}")
         return False
+
+
+def get_database_connection() -> sqlite3.Connection:
+    return sqlite3.connect(MEMORY_DATABASE)
 
 
 def main():

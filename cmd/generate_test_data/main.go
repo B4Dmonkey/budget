@@ -27,8 +27,9 @@ func isPayDay(date time.Time) bool {
 	fifteenth := 15
 	lastDayOfMonth := time.Date(date.Year(), date.Month()+1, 0, 0, 0, 0, 0, date.Location()).Day()
 	isWeekend := date.Weekday() == time.Saturday || date.Weekday() == time.Sunday
-	isFifteenthOrLastDayOfTheMonth := func(d int) bool { return d == fifteenth || d == lastDayOfMonth }
 	isFriday := date.Weekday() == time.Friday
+
+	isFifteenthOrLastDayOfTheMonth := func(d int) bool { return d == fifteenth || d == lastDayOfMonth }
 
 	isWeekendFifteenthOrLastDayOfTheMonth := func() bool {
 		if !isFriday {
@@ -43,14 +44,15 @@ func isPayDay(date time.Time) bool {
 		return false
 	}
 
-	switch {
-	case isFriday && isWeekendFifteenthOrLastDayOfTheMonth():
+	if isFriday && isWeekendFifteenthOrLastDayOfTheMonth() {
 		return true
-	case !isWeekend && isFifteenthOrLastDayOfTheMonth(date.Day()):
-		return true
-	default:
-		return false
 	}
+
+	if !isWeekend && isFifteenthOrLastDayOfTheMonth(date.Day()) {
+		return true
+	}
+
+	return false
 }
 
 func transactionToRow(t Transaction) []string {
@@ -65,17 +67,15 @@ func transactionToRow(t Transaction) []string {
 	}
 }
 
-func writeHeader(writer *csv.Writer) {
+func newTransactionCSV(file *os.File) *csv.Writer {
+	writer := csv.NewWriter(file)
 	header := []string{"Details", "Posting Date", "Description", "Amount", "Type", "Balance", "Check or Slip #"}
+
 	if err := writer.Write(header); err != nil {
 		log.Fatalf("Failed to write header: %s", err)
 	}
-}
 
-func writeRow(writer *csv.Writer, row []string) {
-	if err := writer.Write(row); err != nil {
-		log.Fatalf("Failed to write row: %s", err)
-	}
+	return writer
 }
 
 func main() {
@@ -93,37 +93,38 @@ func main() {
 	}
 	defer file.Close()
 
-	writer := csv.NewWriter(file)
+	newTransactionCSV(file)
+
+	writer := newTransactionCSV(file)
 	defer writer.Flush()
 
-	writeHeader(writer)
-	startDate := time.Date(2024, time.February, 1, 0, 0, 0, 0, time.UTC)
-	println("startDate: ", startDate.Format("Monday 01/02/2006"))
+	start_date := time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)
+	end_date := time.Date(start_date.Year(), start_date.Month()+1, 0, 0, 0, 0, 0, time.UTC)
 
-	switch startDate.Weekday() {
-	case time.Thursday:
-		println("It's Thursday!")
-	default:
-		println("It's not Thursday.")
-	}
+	var transactions []Transaction
+	for date := start_date; !date.After(end_date); date = date.AddDate(0, 0, 1) {
+		formattedDateString := date.Format("01/02/2006")
 
-	endDate := time.Date(2023, time.December, 31, 0, 0, 0, 0, time.UTC)
-
-	for date := startDate; date.After(endDate); date = date.AddDate(0, 0, -1) {
 		if isPayDay(date) {
-			formattedDateString := date.Format("01/02/2006")
-			writeRow(writer, transactionToRow(Transaction{
-				Details: CREDIT,
+			transactions = append(transactions, Transaction{
+				Details:     CREDIT,
 				PostingDate: formattedDateString,
 				Description: "PAYROLL",
-				Amount: "3500.00",
-				Type: "ACH_CREDIT",
-			}))
+				Amount:      "3500.00",
+				Type:        "ACH_CREDIT",
+			})
 			continue
 		}
-		if date.Month() == time.January {
-			formattedDateString := date.Format("01/02/2006")
-			writeRow(writer, transactionToRow(Transaction{PostingDate: formattedDateString}))
+
+		transactions = append(transactions, Transaction{
+			PostingDate: formattedDateString,
+		})
+	}
+
+	for i := len(transactions) - 1; i >= 0; i-- {
+		if err := writer.Write(transactionToRow(transactions[i])); err != nil {
+			println("Failed to write row: ", err)
+			continue
 		}
 	}
 }

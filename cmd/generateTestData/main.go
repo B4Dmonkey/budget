@@ -57,16 +57,17 @@ func isPayDay(date time.Time) bool {
 	return false
 }
 
-func transactionToRow(t Transaction) []string {
-	return []string{
-		t.Details,
-		t.PostingDate,
-		t.Description,
-		t.Amount,
-		t.Type,
-		t.Balance,
-		t.CheckOrSlipNumber,
+func isSpotifyBill(date time.Time) bool {
+	lastDayOfMonth := time.Date(date.Year(), date.Month()+1, 0, 0, 0, 0, 0, date.Location()).Day()
+	if lastDayOfMonth >= 29 && date.Day() == 29 {
+		return true
 	}
+
+	if lastDayOfMonth == 28 && date.Day() == 28 {
+		return true
+	}
+
+	return false
 }
 
 func newTransactionCSV(file *os.File) *csv.Writer {
@@ -78,6 +79,27 @@ func newTransactionCSV(file *os.File) *csv.Writer {
 	}
 
 	return writer
+}
+
+func (t Transaction) transactionToRow() []string {
+	return []string{
+		t.Details,
+		t.PostingDate,
+		t.Description,
+		t.Amount,
+		t.Type,
+		t.Balance,
+		t.CheckOrSlipNumber,
+	}
+}
+
+func writeTransactions(writer *csv.Writer, t []Transaction) {
+	for i := len(t) - 1; i >= 0; i-- {
+		if err := writer.Write(t[i].transactionToRow()); err != nil {
+			println("Failed to write row: ", err)
+			continue
+		}
+	}
 }
 
 func main() {
@@ -95,7 +117,7 @@ func main() {
 	fake.Person().Name()
 	// ! End of example
 
-	file, err := os.Create("testdata/Chase Activity Feb 1.CSV")
+	file, err := os.Create("/Users/appstack/Developer/Personal/budget/testdata/Chase Activity Feb 1.CSV")
 	if err != nil {
 		log.Fatalf("Failed to create file: %s", err)
 	}
@@ -123,19 +145,21 @@ func main() {
 				Amount:      fmt.Sprintf("%.2f", amount),
 				Type:        "ACH_CREDIT",
 			})
-			continue
 		}
 
-		transactions = append(transactions, Transaction{
-			PostingDate: formattedDateString,
-			Balance:     fmt.Sprintf("%.2f", balance),
-		})
-	}
-
-	for i := len(transactions) - 1; i >= 0; i-- {
-		if err := writer.Write(transactionToRow(transactions[i])); err != nil {
-			println("Failed to write row: ", err)
-			continue
+		if isSpotifyBill(date) {
+			amount := -11.99
+			balance += amount
+			transactions = append(transactions, Transaction{
+				Balance:     fmt.Sprintf("%.2f", balance),
+				Details:     DEBIT,
+				PostingDate: formattedDateString,
+				Description: "Spotify Bill Proxy",
+				Amount:      fmt.Sprintf("%.2f", amount),
+				Type:        "DEBIT_CARD",
+			})
 		}
 	}
+
+	writeTransactions(writer, transactions)
 }

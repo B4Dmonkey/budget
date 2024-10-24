@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"log"
+	"math"
 	"math/rand"
 	"os"
 	"time"
@@ -79,13 +81,19 @@ func newTransactionCSV(file *os.File) *csv.Writer {
 }
 
 func main() {
-	time_seed := time.Now().UnixNano()
+	SEED := int64(1)
+	r := rand.New(rand.NewSource(SEED))
+	println("Seed: ", SEED)
+	start_balance := 10 + r.Float64()*(900-10)
+	start_balance = math.Round(start_balance*100) / 100
+	println(fmt.Sprintf("Starting Balance: %.2f", start_balance))
+	start_balance += 3500
+	println(fmt.Sprintf("Starting Balance after Payroll: %.2f", start_balance))
 
-	println("time_seed: ", time_seed)
-	seed := int64(1)
-	fake := faker.NewWithSeed(rand.NewSource(seed))
-
-	println(fake.Person().Name())
+	// ! Example of using faker. I may not need it
+	fake := faker.NewWithSeed(r)
+	fake.Person().Name()
+	// ! End of example
 
 	file, err := os.Create("testdata/Chase Activity Feb 1.CSV")
 	if err != nil {
@@ -93,24 +101,26 @@ func main() {
 	}
 	defer file.Close()
 
-	newTransactionCSV(file)
-
 	writer := newTransactionCSV(file)
 	defer writer.Flush()
 
 	start_date := time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)
 	end_date := time.Date(start_date.Year(), start_date.Month()+1, 0, 0, 0, 0, 0, time.UTC)
 
+	balance := start_balance
 	var transactions []Transaction
 	for date := start_date; !date.After(end_date); date = date.AddDate(0, 0, 1) {
 		formattedDateString := date.Format("01/02/2006")
 
 		if isPayDay(date) {
+			amount := 3500.00
+			balance += amount
 			transactions = append(transactions, Transaction{
+				Balance:     fmt.Sprintf("%.2f", balance),
 				Details:     CREDIT,
 				PostingDate: formattedDateString,
 				Description: "PAYROLL",
-				Amount:      "3500.00",
+				Amount:      fmt.Sprintf("%.2f", amount),
 				Type:        "ACH_CREDIT",
 			})
 			continue
@@ -118,6 +128,7 @@ func main() {
 
 		transactions = append(transactions, Transaction{
 			PostingDate: formattedDateString,
+			Balance:     fmt.Sprintf("%.2f", balance),
 		})
 	}
 

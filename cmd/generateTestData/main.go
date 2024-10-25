@@ -70,6 +70,15 @@ func isSpotifyBill(date time.Time) bool {
 	return false
 }
 
+func isRentDue(date time.Time) bool {
+	// Todo: Make this fuzzy so that it falls on a few days after the 15
+	if date.Day() == 15 {
+		return true
+	}
+
+	return false
+}
+
 func newTransactionCSV(file *os.File) *csv.Writer {
 	writer := csv.NewWriter(file)
 	header := []string{"Details", "Posting Date", "Description", "Amount", "Type", "Balance", "Check or Slip #"}
@@ -93,43 +102,7 @@ func (t Transaction) transactionToRow() []string {
 	}
 }
 
-func writeTransactions(writer *csv.Writer, t []Transaction) {
-	for i := len(t) - 1; i >= 0; i-- {
-		if err := writer.Write(t[i].transactionToRow()); err != nil {
-			println("Failed to write row: ", err)
-			continue
-		}
-	}
-}
-
-func main() {
-	SEED := int64(1)
-	r := rand.New(rand.NewSource(SEED))
-	println("Seed: ", SEED)
-	start_balance := 10 + r.Float64()*(900-10)
-	start_balance = math.Round(start_balance*100) / 100
-	println(fmt.Sprintf("Starting Balance: %.2f", start_balance))
-	start_balance += 3500
-	println(fmt.Sprintf("Starting Balance after Payroll: %.2f", start_balance))
-
-	// ! Example of using faker. I may not need it
-	fake := faker.NewWithSeed(r)
-	fake.Person().Name()
-	// ! End of example
-
-	file, err := os.Create("/Users/appstack/Developer/Personal/budget/testdata/Chase Activity Feb 1.CSV")
-	if err != nil {
-		log.Fatalf("Failed to create file: %s", err)
-	}
-	defer file.Close()
-
-	writer := newTransactionCSV(file)
-	defer writer.Flush()
-
-	start_date := time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)
-	end_date := time.Date(start_date.Year(), start_date.Month()+1, 0, 0, 0, 0, 0, time.UTC)
-
-	balance := start_balance
+func generateTransactions(writer *csv.Writer, balance float64, start_date time.Time, end_date time.Time) {
 	var transactions []Transaction
 	for date := start_date; !date.After(end_date); date = date.AddDate(0, 0, 1) {
 		formattedDateString := date.Format("01/02/2006")
@@ -147,6 +120,19 @@ func main() {
 			})
 		}
 
+		if isRentDue(date) {
+			amount := -1712.50
+			balance += amount
+			transactions = append(transactions, Transaction{
+				Balance:     fmt.Sprintf("%.2f", balance),
+				Details:     DEBIT,
+				PostingDate: formattedDateString,
+				Description: "Rent",
+				Amount:      fmt.Sprintf("%.2f", amount),
+				Type:        "DEBIT_CARD",
+			})
+		}
+
 		if isSpotifyBill(date) {
 			amount := -11.99
 			balance += amount
@@ -161,5 +147,41 @@ func main() {
 		}
 	}
 
-	writeTransactions(writer, transactions)
+	for i := len(transactions) - 1; i >= 0; i-- {
+		if err := writer.Write(transactions[i].transactionToRow()); err != nil {
+			println("Failed to write row: ", err)
+			continue
+		}
+	}
+}
+
+func main() {
+	SEED := int64(1)
+	r := rand.New(rand.NewSource(SEED))
+	println("Seed: ", SEED)
+	start_balance := 10 + r.Float64()*(900-10)          // * A random number between 10 and 900
+	start_balance = math.Round(start_balance*100) / 100 // * start balance should be 2 decimal precision
+	println(fmt.Sprintf("Starting Balance: %.2f", start_balance))
+	start_balance += 3500
+	println(fmt.Sprintf("Starting Balance after Payroll: %.2f", start_balance))
+
+	// ! Example of using faker. I may not need it
+	fake := faker.NewWithSeed(r)
+	fake.Person().Name()
+	// ! End of example
+
+	// ? Dynamically generate ?
+	file, err := os.Create("/Users/appstack/Developer/Personal/budget/testdata/Chase Activity Feb 1.CSV")
+	if err != nil {
+		log.Fatalf("Failed to create file: %s", err)
+	}
+	defer file.Close()
+
+	writer := newTransactionCSV(file)
+	defer writer.Flush()
+
+	start_date := time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)
+	end_date := time.Date(start_date.Year(), start_date.Month()+1, 0, 0, 0, 0, 0, time.UTC)
+
+	generateTransactions(writer, start_balance, start_date, end_date)
 }

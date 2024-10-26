@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand"
+	"math/rand/v2"
 	"os"
 	"time"
 
@@ -104,6 +104,7 @@ func (t Transaction) transactionToRow() []string {
 
 func generateTransactions(writer *csv.Writer, balance float64, start_date time.Time, end_date time.Time) {
 	var transactions []Transaction
+
 	for date := start_date; !date.After(end_date); date = date.AddDate(0, 0, 1) {
 		formattedDateString := date.Format("01/02/2006")
 
@@ -156,9 +157,8 @@ func generateTransactions(writer *csv.Writer, balance float64, start_date time.T
 }
 
 func main() {
-	SEED := int64(1)
-	r := rand.New(rand.NewSource(SEED))
-	println("Seed: ", SEED)
+	SEED := rand.NewPCG(1, 2)
+	r := rand.New(SEED) // #nosec G404 // * This is not for security purposes
 	start_balance := 10 + r.Float64()*(900-10)          // * A random number between 10 and 900
 	start_balance = math.Round(start_balance*100) / 100 // * start balance should be 2 decimal precision
 	println(fmt.Sprintf("Starting Balance: %.2f", start_balance))
@@ -166,7 +166,7 @@ func main() {
 	println(fmt.Sprintf("Starting Balance after Payroll: %.2f", start_balance))
 
 	// ! Example of using faker. I may not need it
-	fake := faker.NewWithSeed(r)
+	fake := faker.New()
 	fake.Person().Name()
 	// ! End of example
 

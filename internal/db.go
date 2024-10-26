@@ -8,11 +8,21 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
+
+	"github.com/google/uuid"
+	sqlite "github.com/mattn/go-sqlite3"
 )
+
+func currentTimestamp() string { return time.Now().Format("2006-01-02 15:04:05") }
+
+func newUUID() string { return uuid.New().String() }
 
 func extend_sqlite3() {
 	log.Println("Extending sqlite3 driver...")
+
 	var CONNECT_ONCE sync.Once
+
 	CONNECT_ONCE.Do(func() {
 		sql.Register("sqlite3_extended", &sqlite.SQLiteDriver{
 			ConnectHook: func(conn *sqlite.SQLiteConn) error {

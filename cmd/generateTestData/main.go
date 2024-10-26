@@ -37,12 +37,15 @@ func isPayDay(date time.Time) bool {
 		if !isFriday {
 			return false
 		}
+
 		if saturday := date.AddDate(0, 0, 1); isFifteenthOrLastDayOfTheMonth(saturday.Day()) {
 			return true
 		}
+
 		if sunday := date.AddDate(0, 0, 2); isFifteenthOrLastDayOfTheMonth(sunday.Day()) {
 			return true
 		}
+
 		return false
 	}
 
@@ -158,7 +161,7 @@ func generateTransactions(writer *csv.Writer, balance float64, start_date time.T
 
 func main() {
 	SEED := rand.NewPCG(1, 2)
-	r := rand.New(SEED) // #nosec G404 // * This is not for security purposes
+	r := rand.New(SEED)                                 // #nosec G404 // * This is not for security purposes
 	start_balance := 10 + r.Float64()*(900-10)          // * A random number between 10 and 900
 	start_balance = math.Round(start_balance*100) / 100 // * start balance should be 2 decimal precision
 	println(fmt.Sprintf("Starting Balance: %.2f", start_balance))

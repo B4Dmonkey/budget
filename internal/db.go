@@ -41,6 +41,8 @@ func extend_sqlite3() {
 	log.Println("Extended sqlite3 driver successfully")
 }
 func ConnectToDatabase(ctx context.Context) (*sql.DB, error) {
+	extend_sqlite3()
+
 	log.Println("Connecting to database...")
 
 	var connection *sql.DB

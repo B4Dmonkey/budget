@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/csv"
-	"errors"
+	stdErrs "errors"
 	"fmt"
 	"io"
 	"log"
@@ -18,9 +18,10 @@ import (
 	"github.com/google/uuid"
 
 	"my-budget/database/orm"
+	"my-budget/internal/errors"
 )
 
-const DocumentUploads = "DocumentUploads"
+const DOCUMENT_UPLOADS = "DocumentUploads"
 
 func currentTimestamp() string { return time.Now().Format("2006-01-02 15:04:05") }
 
@@ -57,7 +58,7 @@ func GetTransactions(
 	startDate time.Time,
 	endDate time.Time,
 ) ([]orm.GetTransactionsInDateRangeRow, error) {
-	verify := Verifier{}
+	verify := errors.Verifier{}
 	verify.That(db != nil, "Database connection is nil")
 	verify.That(ctx != nil, "Context is nil")
 
@@ -74,7 +75,7 @@ func GetTransactions(
 func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipart.FileHeader, file io.Reader) error {
 	log.Println("Processing transactions")
 
-	verify := Verifier{}
+	verify := errors.Verifier{}
 
 	verify.That(db != nil, "Database connection is nil")
 	verify.That(ctx != nil, "Context is nil")
@@ -87,7 +88,7 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 
 	fileName := strings.ToLower(header.Filename)
 	if !strings.HasPrefix(fileName, "chase activity") {
-		return &VerificationError{Message: fmt.Sprintf("Filename '%s' does not start with 'chase activity'", header.Filename)}
+		return &errors.VerificationError{Message: fmt.Sprintf("Filename '%s' does not start with 'chase activity'", header.Filename)}
 	}
 
 	if err := SaveFileToDisk(header, file); err != nil {
@@ -108,7 +109,7 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 
 	dateParts := strings.Split(datePart, " ")
 	if len(dateParts) != 2 {
-		return newParseError(fmt.Sprintf("Error parsing date from filename. Date part: %v", datePart))
+		return errors.NewParseError(fmt.Sprintf("Error parsing date from filename. Date part: %v", datePart))
 	}
 
 	month, day := dateParts[0], dateParts[1]
@@ -123,7 +124,7 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 	// Parse the extracted date
 	parsedDate, err := time.Parse("Jan 2", datePart)
 	if err != nil {
-		return errors.New("Error parsing date from filename: " + err.Error())
+		return stdErrs.New("Error parsing date from filename: " + err.Error())
 	}
 
 	// Combine with the year from creationTime
@@ -136,7 +137,7 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 	})
 
 	if err != nil && err != sql.ErrNoRows {
-		return errors.New("Error checking for existing document: " + err.Error())
+		return stdErrs.New("Error checking for existing document: " + err.Error())
 	}
 
 	//todo: maybe send message for duplicate documents
@@ -150,7 +151,7 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 		})
 
 		if err != nil {
-			return errors.New("Error creating document record: " + err.Error())
+			return stdErrs.New("Error creating document record: " + err.Error())
 		}
 
 		// Reset the cursor to the start of the file
@@ -213,15 +214,15 @@ func ProcessNewTransactions(db orm.Querier, ctx context.Context, header *multipa
 
 func SaveFileToDisk(header *multipart.FileHeader, file io.Reader) error {
 	// todo: check if the folder is there. Not important since this is for me
-	out, err := os.Create(filepath.Join(DocumentUploads, header.Filename))
+	out, err := os.Create(filepath.Join(DOCUMENT_UPLOADS, header.Filename))
 	if err != nil {
-		return errors.New("Unable to create the file: " + err.Error())
+		return stdErrs.New("Unable to create the file: " + err.Error())
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, file)
 	if err != nil {
-		return errors.New("Error saving file: " + err.Error())
+		return stdErrs.New("Error saving file: " + err.Error())
 	}
 
 	return nil

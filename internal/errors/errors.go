@@ -1,4 +1,4 @@
-package main
+package errors
 
 import (
 	"strings"
@@ -43,4 +43,4 @@ type ParseError struct{ Message string }
 func (e *ParseError) Error() string { return e.Message }
 
 // newParseError creates a new ParseError with the given message
-func newParseError(message string) error { return &ParseError{Message: message} }
+func NewParseError(message string) error { return &ParseError{Message: message} }

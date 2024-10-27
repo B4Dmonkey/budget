@@ -3,10 +3,13 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
+	"io"
 	"log"
 	"math"
 	"math/rand/v2"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jaswdr/faker/v2"
@@ -14,6 +17,16 @@ import (
 
 const CREDIT = "CREDIT"
 const DEBIT = "DEBIT"
+
+const (
+	Details = iota
+	PostingDate
+	Description
+	Amount
+	Type
+	Balance
+	CheckOrSlipNumber
+)
 
 type Transaction struct {
 	Details           string
@@ -159,6 +172,73 @@ func generateTransactions(writer *csv.Writer, balance float64, start_date time.T
 	}
 }
 
+func foo() {
+	file, err := os.Open("Chase Activity Oct 6.CSV")
+	if err != nil {
+		log.Fatalf("Failed to open file: %s", err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+
+	if _, err := reader.Read(); err != nil {
+		log.Fatalf("error skipping headers: %v", err)
+	}
+
+	var previousDate time.Time
+
+	tx_count := 0
+	gap_count := 0
+
+	for {
+		record, err := reader.Read()
+		if err != nil && err == io.EOF {
+			break
+		}
+
+		if parseErr, ok := err.(*csv.ParseError); ok && parseErr.Err != csv.ErrFieldCount {
+			log.Fatalf("error parsing record: %v", err)
+		}
+
+		posting_date, err := time.Parse("01/02/2006", record[PostingDate])
+		if err != nil {
+			log.Fatalf("error parsing date: %v", err)
+		}
+
+		tx_count++
+
+		if !previousDate.IsZero() && posting_date.Before(previousDate.AddDate(0, 0, -1)) {
+			for d := previousDate.AddDate(0, 0, -1); d.After(posting_date); d = d.AddDate(0, 0, -1) {
+				gap_count++
+			}
+		}
+
+		previousDate = posting_date
+
+		if strings.Contains(strings.ToLower(record[Description]), "mta") {
+			continue
+		}
+
+		if strings.Contains(strings.ToLower(record[Description]), "venmo") {
+			amount, err := strconv.ParseFloat(record[Amount], 64)
+			if err != nil {
+				log.Fatalf("error parsing amount: %v", err)
+			}
+
+			if amount == -1712 || amount == -1712.5 {
+				continue
+			}
+		}
+
+		if strings.Contains(strings.ToLower(record[Description]), "spotify") {
+			continue
+		}
+	}
+
+	println("Transaction Count: ", tx_count)
+	println("Gap Count: ", gap_count)
+}
+
 func main() {
 	SEED := rand.NewPCG(1, 2)
 	r := rand.New(SEED)                                 // #nosec G404 // * This is not for security purposes
@@ -183,6 +263,7 @@ func main() {
 	writer := newTransactionCSV(file)
 	defer writer.Flush()
 
+	foo()
 	start_date := time.Date(2024, time.January, 1, 0, 0, 0, 0, time.UTC)
 	end_date := time.Date(start_date.Year(), start_date.Month()+1, 0, 0, 0, 0, 0, time.UTC)
 

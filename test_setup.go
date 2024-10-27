@@ -9,7 +9,13 @@ import (
 	"my-budget/database/orm"
 )
 
-type DomainTest struct {
+type AppTest struct {
+	t          *testing.T
+	a          *App
+	testServer *httptest.Server
+}
+
+type Domain struct {
 	t    *testing.T
 	conn *sql.DB
 	ctx  context.Context
@@ -18,16 +24,16 @@ type DomainTest struct {
 	txq  *orm.Queries
 }
 
-func SetupDomainTest(t *testing.T) *DomainTest {
+func NewDomainTest(t *testing.T) *Domain {
 	ctx := context.Background()
 	conn := setupTestDbConnection(t, ctx)
-	dt := DomainTest{t: t, conn: conn, ctx: ctx}
+	dt := Domain{t: t, conn: conn, ctx: ctx}
 	dt.setup()
 
 	return &dt
 }
 
-func (dt *DomainTest) setup() *orm.Queries {
+func (dt *Domain) setup() *orm.Queries {
 	dt.q = orm.New(dt.conn)
 	tx, err := dt.conn.Begin()
 
@@ -41,13 +47,7 @@ func (dt *DomainTest) setup() *orm.Queries {
 	return dt.q
 }
 
-func (dt *DomainTest) teardown() { teardownTestDbConnection(dt.t, dt.conn) }
-
-type AppTest struct {
-	t          *testing.T
-	a          *App
-	testServer *httptest.Server
-}
+func (dt *Domain) teardown() { teardownTestDbConnection(dt.t, dt.conn) }
 
 func NewAppTest(t *testing.T) *AppTest {
 	ctx := context.Background()

@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"my-budget/database/orm"
+	"my-budget/internal/errors"
 )
 
 func TestConvertCurrencyIntToString(t *testing.T) {
@@ -52,7 +53,7 @@ func TestConvertCurrencyStringToIntOrNil(t *testing.T) {
 	}
 }
 
-func setupTestGetTransactions(testQuery *DomainTest) {
+func setupTestGetTransactions(testQuery *Domain) {
 	filename := "Chase Activity Sept 27.CSV"
 
 	document, err := testQuery.q.CreateDocumentMeta(testQuery.ctx, orm.CreateDocumentMetaParams{
@@ -86,7 +87,7 @@ func setupTestGetTransactions(testQuery *DomainTest) {
 	}
 }
 func TestGetTransactions(t *testing.T) {
-	dt := SetupDomainTest(t)
+	dt := NewDomainTest(t)
 	defer dt.teardown()
 
 	setupTestGetTransactions(dt)
@@ -119,7 +120,7 @@ func TestGetTransactions(t *testing.T) {
 }
 
 func TestProcessNewTransactions(t *testing.T) {
-	dt := SetupDomainTest(t)
+	dt := NewDomainTest(t)
 	defer dt.teardown()
 	setupTestGetTransactions(dt)
 
@@ -141,13 +142,13 @@ func TestProcessNewTransactions(t *testing.T) {
 		expectedErrType error
 	}{
 		"It fails when db is nil": {
-			db: nil, ctx: dt.ctx, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
+			db: nil, ctx: dt.ctx, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &errors.VerificationError{},
 		},
 		"It fails when ctx is nil": {
-			db: dt.q, ctx: nil, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
+			db: dt.q, ctx: nil, header: header, file: mock_csv_data, expectErr: true, expectedErrType: &errors.VerificationError{},
 		},
 		"It fails when header is nil": {
-			db: dt.q, ctx: dt.ctx, header: nil, file: mock_csv_data, expectErr: true, expectedErrType: &VerificationError{},
+			db: dt.q, ctx: dt.ctx, header: nil, file: mock_csv_data, expectErr: true, expectedErrType: &errors.VerificationError{},
 		},
 		"It fails when header filename is incorrect": {
 			db:              dt.q,
@@ -155,10 +156,10 @@ func TestProcessNewTransactions(t *testing.T) {
 			header:          &multipart.FileHeader{Filename: "test.csv"},
 			file:            mock_csv_data,
 			expectErr:       true,
-			expectedErrType: &VerificationError{},
+			expectedErrType: &errors.VerificationError{},
 		},
 		"It fails when file is nil": {
-			db: dt.q, ctx: dt.ctx, header: header, file: nil, expectErr: true, expectedErrType: &VerificationError{},
+			db: dt.q, ctx: dt.ctx, header: header, file: nil, expectErr: true, expectedErrType: &errors.VerificationError{},
 		},
 		"It fails when extracting date part": {
 			db:              dt.q,
@@ -166,7 +167,7 @@ func TestProcessNewTransactions(t *testing.T) {
 			header:          &multipart.FileHeader{Filename: "chase activity test.csv"},
 			file:            mock_csv_data,
 			expectErr:       true,
-			expectedErrType: &ParseError{},
+			expectedErrType: &errors.ParseError{},
 		},
 		"It does the thing": {db: dt.q, ctx: dt.ctx, header: header, file: mock_csv_data},
 	}

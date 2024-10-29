@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"my-budget/database/orm"
+	"my-budget/internal/convert"
 	"my-budget/internal/errors"
 	"strings"
 	"time"
@@ -152,13 +153,13 @@ func (b *Budget) AddNewTransactionsFromDocument(fileName string, file io.Reader)
 			return err
 		}
 
-		amount, err := ConvertCurrencyStringToInt64(record[Amount])
+		amount, err := convert.CurrencyStringToInt64(record[Amount])
 		if err != nil {
 			log.Println("Error parsing amount:", err)
 			continue
 		}
 
-		balance := ConvertCurrencyStringToNullInt64(record[Balance])
+		balance := convert.CurrencyStringToNullInt64(record[Balance])
 
 		postingDate, err := time.Parse("01/02/2006", record[PostingDate])
 		if err != nil {
@@ -166,7 +167,7 @@ func (b *Budget) AddNewTransactionsFromDocument(fileName string, file io.Reader)
 			continue
 		}
 
-		if err := db.CreateTransaction(ctx, orm.CreateTransactionParams{
+		if err := db.CreateTransaction(b.ctx, orm.CreateTransactionParams{
 			DocumentID:  document.ID,
 			Details:     record[Details],
 			PostingDate: postingDate,
@@ -178,7 +179,7 @@ func (b *Budget) AddNewTransactionsFromDocument(fileName string, file io.Reader)
 			log.Println("Error creating transaction record:", err)
 			continue
 		}
-
 	}
+
 	return nil
 }

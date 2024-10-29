@@ -1,7 +1,9 @@
 # * Sorted alphabetically with hidden files first
+
 # * Files
 .env
 database/data.db
+
 # * Directories
 .DS_Store/
 .vscode/

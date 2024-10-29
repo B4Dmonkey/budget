@@ -3,13 +3,14 @@ package main
 import (
 	"context"
 	"log"
-	"my-budget/internal"
+	"my-budget/internal/db"
+	"my-budget/internal/budget"
 	"os"
 )
 
 func main() {
 	ctx := context.Background()
-	conn, err := internal.ConnectToDatabase(ctx)
+	conn, err := db.ConnectToDatabase(ctx)
 
 	if err != nil {
 		log.Fatal(err)
@@ -20,7 +21,7 @@ func main() {
 		log.Fatal(err)
 	}
 	
-	budget, err := internal.NewBudget(ctx, conn)
+	budget, err := budget.NewBudget(ctx, conn)
 	if err != nil {
 		log.Fatal(err)
 	}

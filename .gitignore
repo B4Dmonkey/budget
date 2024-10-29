@@ -3,6 +3,7 @@
 .env
 database/data.db
 # * Directories
+.DS_Store/
 .vscode/
 __pycache__/
 bin/

@@ -28,23 +28,12 @@ func NewDomainTest(t *testing.T) *Domain {
 	ctx := context.Background()
 	conn := setupTestDbConnection(t, ctx)
 	dt := Domain{t: t, conn: conn, ctx: ctx}
-	dt.setup()
 
 	return &dt
 }
 
-func (dt *Domain) setup() *orm.Queries {
-	dt.q = orm.New(dt.conn)
-	tx, err := dt.conn.Begin()
-
-	if err != nil {
-		dt.t.Fatalf("Failed to start transaction: %s", err)
-	}
-
-	dt.tx = tx
-	dt.txq = dt.q.WithTx(dt.tx)
-
-	return dt.q
+func (dt *Domain) setupQueries() *orm.Queries {
+	return orm.New(dt.conn)
 }
 
 func (dt *Domain) teardown() { teardownTestDbConnection(dt.t, dt.conn) }

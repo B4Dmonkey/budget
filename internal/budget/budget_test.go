@@ -10,6 +10,8 @@ import (
 )
 
 func TestBudget(t *testing.T) {
+	// Todo: Add more test around edge cases and points of failure
+	// ! Currently this test is just going down the happy path
 	dt := testutils.NewDomainTest(t)
 	println(dt)
 
@@ -22,5 +24,8 @@ func TestBudget(t *testing.T) {
 	}
 
 	err = budget.AddNewTransactionsFromDocument("Chase Activity Oct 6.CSV", file)
+	assert.NoError(t, err)
+
+	err = budget.GetIncomeVsExpense()
 	assert.NoError(t, err)
 }

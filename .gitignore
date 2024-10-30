@@ -3,9 +3,10 @@
 # * Files
 .env
 database/data.db
+*.CSV
 
 # * Directories
-.DS_Store/
+.DS_Store
 .vscode/
 __pycache__/
 bin/

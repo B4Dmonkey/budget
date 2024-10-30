@@ -41,22 +41,6 @@ func NewBudget(ctx context.Context, conn *sql.DB) (*Budget, error) {
 	return &Budget{ctx: ctx, conn: conn}, nil
 }
 
-// func (b *Budget) GetTransactions(startDate time.Time, endDate time.Time) ([]orm.GetTransactionsInDateRangeRow, error) {
-// 	// ? Validate the inputs
-// 	// verify := Verifier{}
-// 	// verify.That(startDate != nil, "Querier not provided")
-// 	// verify.That(endDate != nil, "Context is nil")
-
-// 	// if err := verify.Flush(); err != nil {
-// 	// 	return nil, err
-// 	// }
-
-// 	return b.query.GetTransactionsInDateRange(
-// 		b.ctx,
-// 		orm.GetTransactionsInDateRangeParams{StartDate: startDate, EndDate: endDate},
-// 	)
-// }
-
 func (b *Budget) AddNewTransactionsFromDocument(fileName string, file io.Reader) error {
 	log.Println("Processing transactions")
 
@@ -180,6 +164,19 @@ func (b *Budget) AddNewTransactionsFromDocument(fileName string, file io.Reader)
 			continue
 		}
 	}
+
+	return nil
+}
+
+func (b *Budget) GetIncomeVsExpense() error {
+	db := orm.New(b.conn)
+
+	result, err := db.GetIncomeVsExpenseAndTotal(b.ctx)
+	if err != nil {
+		return stdErrs.New("Error getting income vs expense: " + err.Error())
+	}
+
+	log.Printf("Income: %v, Expense: %v, Total: %v\n", result.Income, result.Expense, result.Total)
 
 	return nil
 }

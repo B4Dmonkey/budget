@@ -13,7 +13,7 @@ const BulkAddNewTransactionsFromDocument = "BulkAddNewTransactionsFromDocument"
 const GetIncomeVsExpense = "GetIncomeVsExpense"
 
 // const Request = AddNewTransactionsFromDocument
-const Request = GetIncomeVsExpense
+const Request = BulkAddNewTransactionsFromDocument
 
 func main() {
 	ctx := context.Background()
@@ -37,6 +37,37 @@ func main() {
 	case AddNewTransactionsFromDocument:
 		if err := budget.AddNewTransactionsFromDocument("Chase Activity Oct 6.CSV", file); err != nil {
 			log.Fatal(err)
+		}
+
+	case BulkAddNewTransactionsFromDocument:
+		base_dir := "/Users/appstack/Developer/Personal/budget/cmd/generateTestData"
+		fileNames := []string{
+			"Chase Activity Sept 27.CSV",
+			"Chase Activity Oct 6.CSV",
+			"Chase Activity Oct 30.CSV",
+			// "Chase9931_Activity_20240412.CSV",
+		}
+		transactions := []struct {
+			File     *os.File
+			FileName string
+		}{}
+
+		for _, fileName := range fileNames {
+			file, err := os.Open(base_dir + "/" + fileName)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			transactions = append(transactions, struct {
+				File     *os.File
+				FileName string
+			}{file, fileName})
+		}
+
+		for _, transaction := range transactions {
+			if err := budget.AddNewTransactionsFromDocument(transaction.FileName, transaction.File); err != nil {
+				log.Fatal(err)
+			}
 		}
 
 	case GetIncomeVsExpense:

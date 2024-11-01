@@ -15,6 +15,7 @@ import (
 	"time"
 )
 
+// Constants used to index the columns in a transactions csv file
 const (
 	Details int = iota
 	PostingDate
@@ -29,6 +30,8 @@ type Budget struct {
 	conn *sql.DB
 }
 
+// Create a new Budget instance
+// Errors if the context or database connection is nil
 func NewBudget(ctx context.Context, conn *sql.DB) (*Budget, error) {
 	verify := errors.Verifier{}
 	verify.That(conn != nil, "Querier not provided")
@@ -73,6 +76,15 @@ func (b *Budget) AddNewTransactionsFromDocument(fileName string, file io.Reader)
 	}
 
 	month, day := dateParts[0], dateParts[1]
+	monthMap := map[string]string{
+		"sept": "Sep", // Handle "Sept" specifically
+	}
+
+	if abbr, ok := monthMap[month]; ok {
+		month = abbr
+	} else {
+		log.Println("Month not found in map, using original parsed name:", month)
+	}
 	datePart = month + " " + day
 
 	// Parse the extracted date

@@ -1,6 +1,5 @@
 -- name: CreateTransaction :exec
 INSERT INTO transactions (
-    id,
     details,
     posting_date,
     description,
@@ -9,7 +8,9 @@ INSERT INTO transactions (
     balance,
     document_id
   )
-VALUES (UUID (), ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?)
+ON CONFLICT (posting_date, description, amount, type, balance) 
+DO UPDATE SET document_id = EXCLUDED.document_id;
 -- name: GetIncomeVsExpenseAndTotal :one
 SELECT SUM(
     CASE
@@ -42,3 +43,21 @@ WHERE transactions.posting_date >= @start_date
     FROM documents_meta
   )
 ORDER BY transactions.posting_date DESC;
+-- name: GetAllTransactions :many
+SELECT 
+    id,
+    document_id,
+    details,
+    posting_date,
+    description,
+    amount,
+    type,
+    balance
+FROM 
+    transactions
+WHERE 
+    ROWID IN (
+        SELECT MIN(ROWID)
+        FROM transactions
+        GROUP BY posting_date, description, amount, type, balance
+    );

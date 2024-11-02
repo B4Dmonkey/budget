@@ -7,7 +7,7 @@ CREATE TABLE documents_meta (
     persisted_loc VARCHAR(255) NOT NULL
   , publishing_date TIMESTAMP);
 CREATE TABLE transactions (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT (UUID()),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     document_id UUID, -- Foreign key column
@@ -17,7 +17,8 @@ CREATE TABLE transactions (
     amount INTEGER NOT NULL,
     type VARCHAR(50) NOT NULL, -- e.g., "credit" or "debit"
     balance INTEGER,
-    FOREIGN KEY (document_id) REFERENCES documents_meta (id)
+    FOREIGN KEY (document_id) REFERENCES documents_meta (id),
+    UNIQUE (posting_date, description, amount, type, balance) -- Composite unique constraint
   );
 CREATE TABLE categories (
     id UUID PRIMARY KEY,

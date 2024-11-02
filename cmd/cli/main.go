@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	// "my-budget/database/orm"
 	"my-budget/internal/budget"
 	"my-budget/internal/db"
 	"os"
@@ -69,6 +70,9 @@ func main() {
 				log.Fatal(err)
 			}
 		}
+
+		// q := orm.New(conn)
+
 
 	case GetIncomeVsExpense:
 		if err := budget.GetIncomeVsExpense(); err != nil {

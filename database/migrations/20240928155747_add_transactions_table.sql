@@ -1,7 +1,7 @@
 -- migrate:up
 CREATE TABLE IF NOT EXISTS
   transactions (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT (UUID()),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     document_id UUID, -- Foreign key column
@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS
     amount INTEGER NOT NULL,
     type VARCHAR(50) NOT NULL, -- e.g., "credit" or "debit"
     balance INTEGER,
-    FOREIGN KEY (document_id) REFERENCES documents_meta (id)
+    FOREIGN KEY (document_id) REFERENCES documents_meta (id),
+    UNIQUE (posting_date, description, amount, type, balance) -- Composite unique constraint
   );
 
 -- migrate:down

@@ -12,6 +12,7 @@ import (
 const AddNewTransactionsFromDocument = "AddNewTransactionsFromDocument"
 const BulkAddNewTransactionsFromDocument = "BulkAddNewTransactionsFromDocument"
 const GetIncomeVsExpense = "GetIncomeVsExpense"
+const GetPendingTransactions = "GetPendingTransactions"
 
 // const Request = AddNewTransactionsFromDocument
 const Request = BulkAddNewTransactionsFromDocument
@@ -72,7 +73,6 @@ func main() {
 		}
 
 		// q := orm.New(conn)
-
 
 	case GetIncomeVsExpense:
 		if err := budget.GetIncomeVsExpense(); err != nil {

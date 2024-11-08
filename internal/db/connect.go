@@ -18,7 +18,9 @@ func currentTimestamp() string { return time.Now().Format("2006-01-02 15:04:05")
 
 func newUUID() string { return uuid.New().String() }
 
-func extend_sqlite3() {
+// init registers the sqlite3 driver with the extended functions
+// This MUST be run first before any other database operations
+func init() {
 	log.Println("Extending sqlite3 driver...")
 
 	var CONNECT_ONCE sync.Once
@@ -41,7 +43,6 @@ func extend_sqlite3() {
 	log.Println("Extended sqlite3 driver successfully")
 }
 func ConnectToDatabase(ctx context.Context) (*sql.DB, error) {
-	extend_sqlite3()
 
 	log.Println("Connecting to database...")
 

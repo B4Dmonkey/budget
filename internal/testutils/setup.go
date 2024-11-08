@@ -10,30 +10,47 @@ import (
 
 	"my-budget/database/orm"
 	"my-budget/internal/db"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type Domain struct {
-	t    *testing.T
-	Conn *sql.DB
-	Ctx  context.Context
-	tx   *sql.Tx
-	q    *orm.Queries
-	txq  *orm.Queries
+	t      *testing.T
+	conn   *sql.DB
+	ctx    context.Context
+	tx     *sql.Tx
+	q      *orm.Queries
+	txq    *orm.Queries
+	Assert *assert.Assertions
 }
 
 func NewDomainTest(t *testing.T) *Domain {
 	ctx := context.Background()
 	conn := setupTestDbConnection(t, ctx)
-	dt := Domain{t: t, Conn: conn, Ctx: ctx}
+	dt := Domain{t: t, conn: conn, ctx: ctx, Assert: assert.New(t)}
 
 	return &dt
 }
 
-func (dt *Domain) setupQueries() *orm.Queries {
-	return orm.New(dt.Conn)
+func (dt *Domain) Conn() *sql.DB {
+	return dt.conn
 }
 
-func (dt *Domain) teardown() { teardownTestDbConnection(dt.t, dt.Conn) }
+func (dt *Domain) Ctx() context.Context {
+	return dt.ctx
+}
+
+func (dt *Domain) ResetTestState() {
+	dt.Teardown()
+	dt.ctx = context.Background()
+	dt.conn = setupTestDbConnection(dt.t, dt.ctx)
+}
+
+func (dt *Domain) setupQueries() *orm.Queries {
+	return orm.New(dt.conn)
+}
+
+func (dt *Domain) Teardown() { teardownTestDbConnection(dt.t, dt.conn) }
 
 func setupTestDbConnection(t *testing.T, ctx context.Context) *sql.DB {
 	conn, err := db.ConnectToDatabase(ctx)

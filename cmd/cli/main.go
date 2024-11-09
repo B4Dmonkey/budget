@@ -20,11 +20,16 @@ const Request = BulkAddNewTransactionsFromDocument
 
 func main() {
 	ctx := context.Background()
-	conn, err := db.Connect(ctx)
 
-	if err != nil {
-		log.Fatal(err)
+	var ok bool
+
+	var DATABASE_LOC string
+
+	if DATABASE_LOC, ok = os.LookupEnv("DATABASE_LOC"); !ok || DATABASE_LOC == "" {
+		log.Fatal(ok, "DATABASE_LOC not set")
 	}
+
+	conn := db.Connect(DATABASE_LOC)
 
 	file, err := os.Open("/Users/appstack/Developer/Personal/budget/cmd/generateTestData/Chase Activity Oct 6.CSV")
 	if err != nil {

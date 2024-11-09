@@ -53,10 +53,7 @@ func (dt *Domain) setupQueries() *orm.Queries {
 func (dt *Domain) Teardown() { teardownTestDbConnection(dt.t, dt.conn) }
 
 func setupTestDbConnection(t *testing.T, ctx context.Context) *sql.DB {
-	conn, err := db.Connect(ctx)
-	if err != nil {
-		t.Fatalf("Failed to connect to database: %s", err)
-	}
+	conn:= db.Connect("file::memory:?cache=shared")
 
 	cwd, err := os.Getwd()
 

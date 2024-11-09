@@ -1,15 +1,12 @@
 package db
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestConnectToDatabase(t *testing.T) {
-	ctx := context.Background()
-	db_conn, err := Connect(ctx)
-	assert.NoError(t, err)
+	db_conn := Connect("file::memory:?cache=shared")
 	assert.NotNil(t, db_conn)
 }

@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	db "my-budget/database"
 	"my-budget/database/orm"
-	"my-budget/internal/db"
 
 	"github.com/stretchr/testify/assert"
 )

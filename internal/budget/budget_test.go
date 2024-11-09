@@ -3,9 +3,11 @@ package budget
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"my-budget/internal/errors"
 	"my-budget/internal/testutils"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -43,7 +45,7 @@ func TestAddNewTransactionsFromDocument(t *testing.T) {
 
 	err := budget.AddNewTransactionsFromDocument("", nil)
 	dt.Assert.IsType(&errors.VerificationError{}, err)
-  dt.ResetTestState()
+	dt.ResetTestState()
 
 	tests := map[string]struct {
 		fileNames []string
@@ -53,7 +55,7 @@ func TestAddNewTransactionsFromDocument(t *testing.T) {
 			"Chase Activity Sept 27.CSV",
 			"Chase Activity Oct 6.CSV",
 			"Chase Activity Oct 30.CSV",
-      // "Chase9931_Activity_20240412.CSV",
+			// "Chase9931_Activity_20240412.CSV",
 		}},
 	}
 
@@ -65,7 +67,12 @@ func TestAddNewTransactionsFromDocument(t *testing.T) {
 			assert.NoError(t, err)
 
 			for _, fileName := range tc.fileNames {
-				file, err := os.Open(base_dir + "/" + fileName)
+				filePath := filepath.Join(base_dir, fileName)
+				fileInfo, err := os.Stat(filePath)
+				assert.NoError(t, err)
+				modTime := fileInfo.ModTime()
+				fmt.Sprintf("File modification time: %s", modTime)
+				file, err := os.Open(filePath)
 				assert.NoError(t, err)
 
 				err = budget.AddNewTransactionsFromDocument(fileName, file)
@@ -76,6 +83,19 @@ func TestAddNewTransactionsFromDocument(t *testing.T) {
 		})
 	}
 }
+
+// func TestGetPublishingDateFromFileName(t *testing.T) {
+// 	test := []struct{
+// 		fileName string
+// 		expected time.Time
+// 	}
+// 		{fileName: "Chase Activity Oct 6.CSV", expected: time.Date(time.Now().Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, time.Local },
+// 		{fileName: "Chase Activity Sept 27.CSV", expected: },
+// 		{fileName: "Chase Activity Oct 30.CSV", expected: },
+// 		// "Chase9931_Activity_20240412.CSV",
+// 	}
+
+// }
 
 func TestGetIncomeVsExpense(t *testing.T) {
 	dt := testutils.NewDomainTest(t)

@@ -192,3 +192,36 @@ func (b *Budget) GetIncomeVsExpense() error {
 
 	return nil
 }
+
+func GetPublishingDateFromFileName(fileName string) (time.Time, error) {
+	parts := strings.Split(strings.ToLower(fileName), "activity")
+	datePart := strings.TrimSpace(parts[1])
+	datePart = strings.Split(datePart, ".")[0]
+	datePart = strings.TrimSpace(datePart)
+
+	dateParts := strings.Split(datePart, " ")
+	if len(dateParts) != 2 {
+		return time.Time{}, errors.NewParseError(fmt.Sprintf("Error parsing date from filename. Date part: %v", datePart))
+	}
+
+	month, day := dateParts[0], dateParts[1]
+	monthMap := map[string]string{
+		"sept": "Sep", // Handle "Sept" specifically
+	}
+
+	if abbr, ok := monthMap[month]; ok {
+		month = abbr
+	} else {
+		log.Println("Month not found in map, using original parsed name:", month)
+	}
+	
+	datePart = month + " " + day
+
+	// Parse the extracted date
+	parsedDate, err := time.Parse("Jan 2", datePart)
+	if err != nil {
+		return time.Time{}, stdErrs.New("Error parsing date from filename: " + err.Error())
+	}
+
+	return time.Date(time.Now().Year(), parsedDate.Month(), parsedDate.Day(), 0, 0, 0, 0, time.Local), nil
+}

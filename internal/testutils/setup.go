@@ -53,7 +53,7 @@ func (dt *Domain) setupQueries() *orm.Queries {
 func (dt *Domain) Teardown() { teardownTestDbConnection(dt.t, dt.conn) }
 
 func setupTestDbConnection(t *testing.T, ctx context.Context) *sql.DB {
-	conn, err := db.ConnectToDatabase(ctx)
+	conn, err := db.Connect(ctx)
 	if err != nil {
 		t.Fatalf("Failed to connect to database: %s", err)
 	}

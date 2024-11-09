@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+
 	// "my-budget/database/orm"
 	"my-budget/internal/budget"
 	"my-budget/internal/db"
@@ -19,7 +20,7 @@ const Request = BulkAddNewTransactionsFromDocument
 
 func main() {
 	ctx := context.Background()
-	conn, err := db.ConnectToDatabase(ctx)
+	conn, err := db.Connect(ctx)
 
 	if err != nil {
 		log.Fatal(err)

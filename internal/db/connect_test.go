@@ -9,7 +9,7 @@ import (
 
 func TestConnectToDatabase(t *testing.T) {
 	ctx := context.Background()
-	db_conn, err := ConnectToDatabase(ctx)
+	db_conn, err := Connect(ctx)
 	assert.NoError(t, err)
 	assert.NotNil(t, db_conn)
 }

@@ -3,7 +3,7 @@ package database
 import (
 	"database/sql"
 	"log"
-	"github.com/B4Dmonkey/ExtendSqliteAndConnect/DatabaseConnect"
+	"github.com/B4Dmonkey/ExtendSqliteAndConnect"
 )
 
 

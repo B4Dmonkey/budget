@@ -1,7 +1,5 @@
-github.com/B4Dmonkey/ExtendSqliteAndConnect v0.0.0-20241109232537-617f50e02ee5 h1:wH478Cr9STGc8glr1dhY5lpMKg6gD4PEELNhD0zi0ok=
-github.com/B4Dmonkey/ExtendSqliteAndConnect v0.0.0-20241109232537-617f50e02ee5/go.mod h1:lFosQIPxot3ZlucaCcOeCtmObG4XYSvz6W8xU8Gt3dw=
-github.com/B4Dmonkey/ExtendSqliteAndConnect v0.1.0 h1:rLuDaMCFcD2H4d2kUkgcTxvPxpxpmTd2DMpaJkH9b2c=
-github.com/B4Dmonkey/ExtendSqliteAndConnect v0.1.0/go.mod h1:lFosQIPxot3ZlucaCcOeCtmObG4XYSvz6W8xU8Gt3dw=
+github.com/B4Dmonkey/ExtendSqliteAndConnect v0.1.1 h1:OtOwKTk5Sjwy6z4XODitSrKNBgQAin9QExMIrVv2gLU=
+github.com/B4Dmonkey/ExtendSqliteAndConnect v0.1.1/go.mod h1:lFosQIPxot3ZlucaCcOeCtmObG4XYSvz6W8xU8Gt3dw=
 github.com/cbroglie/mustache v1.4.0 h1:Azg0dVhxTml5me+7PsZ7WPrQq1Gkf3WApcHMjMprYoU=
 github.com/cbroglie/mustache v1.4.0/go.mod h1:SS1FTIghy0sjse4DUVGV1k/40B1qE1XkD9DtDsHo9iM=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
